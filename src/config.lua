@@ -15,7 +15,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local mode = 'dev'
+local mode = 'test'
 
 return {
 	DEFAULT_COLOR = Color3.new(0.4, 0.8, 0.4);
