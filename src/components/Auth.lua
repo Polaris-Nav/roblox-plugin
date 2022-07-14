@@ -85,10 +85,10 @@ function component:render()
 							if not token then
 								e.error 'Please enter a valid security token. If you do not have one, contact the developer for one.'
 							else
-								self.props.setToken {
+								e.setToken {
 									token = token
 								}
-								self.props.authorized {}
+								e.authorized {}
 							end
 						end;
 					};
