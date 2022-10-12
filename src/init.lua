@@ -52,7 +52,6 @@ local api = {
 	StoreProvider = wrap(RoactRodux.StoreProvider);
 
 	reducers = reducers;
-	CFG = require(script.config);
 }
 
 
@@ -65,7 +64,9 @@ function api:load(name)
 
 	-- By default, search for the module in the root
 	local module = script:FindFirstChild(name)
+
 		or script.actions:FindFirstChild(name)
+
 	local value
 	if module then
 		value = require(module)
@@ -78,6 +79,9 @@ function api:load(name)
 		local first_char = name:sub(1, 1)
 		if first_char == first_char:lower() then
 			value = function(action)
+				if type(action) ~= 'table' then
+					action = {}
+				end
 				action.type = name
 				return api.store:dispatch(action)
 			end
@@ -100,17 +104,23 @@ function api:load(name)
 end
 
 
-function api.rootReducer(state, action)
+local is_reducer = false
+local state, new
+function api.rootReducer(cur_state, action)
 	-- print('Action = ', action, 'State = ', state)
 	local r = reducers[action.type]
 	if r then
-		local new = {}
-		for k, v in next, state do
+		new = {}
+		for k, v in next, cur_state do
 	        new[k] = v
 	    end
-		return r(action, state, new)
+	    is_reducer = true
+	    state = cur_state
+		new = r(action, cur_state, new)
+		is_reducer = false
+		return new
 	else
-		return state
+		return cur_state
 	end
 end
 
@@ -123,9 +133,6 @@ function api._info(text)
 		}
 	}
 end
-function api.info(text)
-	return api.addMessage(api._info(text))
-end
 
 function api._warn(text)
 	return {
@@ -135,10 +142,6 @@ function api._warn(text)
 			Text = text;
 		}
 	}
-end
-function api.warn(text)
-	warn(text)
-	return api.addMessage(api._warn(text))
 end
 
 function api._error(text)
@@ -150,10 +153,40 @@ function api._error(text)
 		}
 	}
 end
-function api.error(text)
-	warn(text)
-	return api.addMessage(api._error(text))
+
+
+
+function api.info(text)
+	print(text)
+
+	if is_reducer then
+		return api.reducers.addMessage(api._info(text), state, new)
+	else
+		return api.addMessage(api._info(text))
+	end
+
 end
 
+function api.warn(text)
+	warn(text)
+
+	if is_reducer then
+		return api.reducers.addMessage(api._warn(text), state, new)
+	else
+		return api.addMessage(api._warn(text))
+	end
+
+end
+
+function api.error(text)
+	warn(text)
+
+	if is_reducer then
+		return api.reducers.addMessage(api._error(text), state, new)
+	else
+		return api.addMessage(api._error(text))
+	end
+
+end
 
 return setmetatable(api, {__index = api.load})

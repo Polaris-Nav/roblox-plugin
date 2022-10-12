@@ -21,13 +21,6 @@
 local e = require(script.Parent)
 
 
-local util = e.util
-local Point = e.Point
-local Surface = e.Surface
-local Connection = e.Connection
-local CConnection = e.CConnection
-local Mesh = e.Mesh
-
 
 
 local Ref_MT = {};
@@ -38,6 +31,7 @@ local F = {
 	Byte = {};
 	Double = {};
 	Int = {};
+	Int64 = {};
 	String = {};
 	Any = {};
 	Bool = {};
@@ -57,6 +51,15 @@ function F.list(v_format, key)
 	return {
 		type = 'list';
 		v_format = v_format;
+		key = key;
+	}
+end
+
+function F.array(len, v_format, key)
+	return {
+		type = 'array';
+		v_format = v_format;
+		len = len;
 		key = key;
 	}
 end
@@ -119,76 +122,19 @@ function Ref_MT:__index(name)
 	return v
 end
 
-local function req_v(v)
-	local function cond(data, i, context)
-		return context.version >= v
-	end
-	return function(format)
-		return F.enable_if(cond, format)
-	end
-end
-
-local V2 = req_v(2)
-
-local function req_v2(data, i, context)
-	return context.version >= 2
-end
-
-F.format('Point', F.struct{
-	{id = F.ID};
-	{v3 = F.V3};
-	{ptype = F.Byte};
-})
-F.new('PointSight', F.map(F.Ref.Points, F.Double))
-F.format('Surface', F.union(
-	F.list(F.Ref.Points),
-	F.struct{
-		{id = F.ID};
-		{c_conns = F.map(F.Ref.Points, F.Ref.CConns)};
-	}
-))
-F.format('Connection', F.struct{
-	{action = F.Int};
-	{fromID = F.Int};
-	{toID = F.Int};
-	{i1 = F.Int};
-	{i2 = F.Int};
-	{j1 = F.Int};
-	{j2 = F.Int};
-	{t1 = F.Double};
-	{t2 = F.Double};
-	{u1 = F.Double};
-	{u2 = F.Double};
-})
-F.format('CConnection', F.struct{
-	{type = F.String};
-	{bidirectional = F.Bool};
-	{at = F.map(F.Ref.Points, F.konst(true, F.Bool, false))};
-	{to = F.map(F.Ref.Points, F.konst(true, F.Bool, false))};
-})
-F.format('Mesh', F.struct{
-	{Name = F.String};
-	{Visible = F.Bool};
-	{points = F.list(Point, 'Points')};
-	{c_conns = V2(F.list(CConnection, 'CConns'))};
-	{surfaces = F.list(Surface, 'Surfaces')};
-	{connections = F.list(Connection)};
+F.new('Challenge', F.struct{
+	{signature = F.array(16, F.Byte)};
+	{issued = F.Int64};
+	{difficulty = F.Byte};
+	{K00 = F.Int};
+	{K01 = F.Int};
+	{K10 = F.Int};
+	{K11 = F.Int};
 })
 
-F.new('MeshSave', F.struct{
-	{version = F.save(
-		'version',
-		F.konst(F._VERSION, F.Int, true)
-	)};
-	{mesh = Mesh};
-})
-F.new('MeshReq', F.struct{
-	{version = F.save(
-		'version',
-		F.konst(F._VERSION, F.Int, true)
-	)};
-	{params = F.map(F.String, F.Any)};
-	{mesh = Mesh};
+F.new('Solution', F.struct{
+	{x = F.Int};
+	{y = F.Int};
 })
 
 return F

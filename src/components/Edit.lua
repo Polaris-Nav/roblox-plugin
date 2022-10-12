@@ -94,7 +94,7 @@ function component:render()
 
 					local root = Instance.new 'Folder'
 					root.Name = mesh.Name
-					e:load 'mesh_to_save'
+					e:load 'mesh_save'
 					mesh:save_dir(root)
 
 					local parent = game:GetService 'ServerStorage'
@@ -148,19 +148,41 @@ function component:render()
 					Size = UDim2.new(0, 70, 1, -2);
 					Position = UDim2.new(1, -70 -20 -70, 0, 1);
 					TextSize = 10;
+					Text = 'Unlink';
+					[e.Roact.Event.Activated] = e.unlink;
+				};
+				e.TButton {
+					Size = UDim2.new(0, 70, 1, -2);
+					Position = UDim2.new(1, -70, 0, 1);
+					TextSize = 10;
+					Text = 'Logout';
+					[e.Roact.Event.Activated] = e.logout;
+				};
+			});
+			e.Line(mesh_rows);
+			e.UIListLayout {
+				FillDirection = Enum.FillDirection.Vertical;
+			};
+		};
+
+		e.Line {
+			e.HeaderBackground({}, {
+				e.HeaderLabel {
+					Text = 'Meshes';
+				};
+				e.TButton {
+					Size = UDim2.new(0, 70, 1, -2);
+					Position = UDim2.new(1, -70 -20 -70, 0, 1);
+					TextSize = 10;
 					Text = 'New';
-					[e.Roact.Event.Activated] = function()
-						e.newMesh {}
-					end;
+					[e.Roact.Event.Activated] = e.newMesh;
 				};
 				e.TButton {
 					Size = UDim2.new(0, 70, 1, -2);
 					Position = UDim2.new(1, -70, 0, 1);
 					TextSize = 10;
 					Text = 'Load';
-					[e.Roact.Event.Activated] = function()
-						e.loadMesh {}
-					end;
+					[e.Roact.Event.Activated] = e.loadMesh;
 				};
 			});
 			e.Line(mesh_rows);
@@ -313,6 +335,24 @@ function e.reducers:setProps(old, new)
 		end
 	end
 
+	return new
+end
+
+function e.reducers:logout(old, new)
+	new.auth.session = nil
+	e.plugin:SetSetting('session', nil)
+	new.mode = 'Welcome'
+	return new
+end
+
+function e.reducers:unlink(old, new)
+	new.auth.UserId = nil
+	new.auth.token = nil
+	new.auth.session = nil
+	e.plugin:SetSetting('user-id', nil)
+	e.plugin:SetSetting('refresh-token', nil)
+	e.plugin:SetSetting('session', nil)
+	new.mode = 'Welcome'
 	return new
 end
 

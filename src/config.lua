@@ -15,7 +15,10 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local mode = 'dev'
+local use_local = true
+local use_dev = true
+local use_test = false
+local mode = use_dev and 'dev' or use_test and 'test' or 'api'
 
 return {
 	DEFAULT_COLOR = Color3.new(0.4, 0.8, 0.4);
@@ -30,5 +33,5 @@ return {
 
 	DIST_SAME_VERT = 0.01;
 
-	url = 'http://' .. mode .. '.Polaris-Nav.com/';
+	url = use_local and 'http://192.168.1.158' or ('https://' .. mode .. '.Polaris-Nav.com');
 }

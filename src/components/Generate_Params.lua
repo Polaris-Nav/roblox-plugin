@@ -18,6 +18,7 @@
 local e = require(script.Parent)
 
 local util = e.util
+local Mesh = e.Mesh
 
 local function selectParams(state, props, fields)
 	local result = {}
@@ -73,11 +74,14 @@ function component:render()
 				Text = 'Continue';
 				Size = UDim2.new(0, 100, 0, 30);
 				[e.Roact.Event.Activated] = function(obj, input, clicks)
-					e:load 'mesh_generate'
-					e.Mesh.generate(
-						self.props.token,
-						self.props.params,
-						self.props.parts)
+					e:load 'mesh_from_parts'
+					e.promise {
+						session = self.props.session;
+						mesh = Mesh.from_parts(self.props.parts);
+						params = self.props.params;
+					}
+					:Then(e.http.generate)
+					:Continue()
 					e.finishGeneration {}
 				end;
 			};
@@ -114,7 +118,7 @@ end
 
 return e.connect(function(state, props)
 	return {
-		token = state.token;
+		session = state.auth.session;
 		parts = state.generation_objects;
 		params = state.params;
 	}

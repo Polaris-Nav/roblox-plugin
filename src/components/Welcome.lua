@@ -35,6 +35,8 @@ function component:render()
 			e.ImageLabel({
 				Image = 'rbxassetid://9037064588';
 				Size = UDim2.new(1, 0, 1, 0);
+				Position = UDim2.new(0.5, 0, 0.5, 0);
+				AnchorPoint = Vector2.new(0.5, 0.5);
 				BackgroundTransparency = 1;
 			}, {
 				e.UIAspectRatioConstraint {
@@ -56,15 +58,14 @@ function component:render()
 end
 
 function e.reducers.begin(action, old, new)
-	if not old.mode == 'Welcome' then
-		return old
-	elseif not old.token then
-		new.mode = 'Auth'
-	elseif #old.meshes == 0 then
-		new.mode = 'Generate'
-	else
-		new.mode = 'Edit'
+	if old.auth.token and old.auth.UserId then
+		if old.auth.session then
+			return e.reducers.refresh_session(action, old, new)
+		else
+			return e.reducers.login(action, old, new)
+		end
 	end
+	new.mode = 'BeginLink'
 	return new
 end
 

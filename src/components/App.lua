@@ -42,7 +42,7 @@ end
 local function getMeshes(root)
 	local saves = CS:GetTagged 'Polaris-Save'
 	local meshes = {}
-	e:load 'mesh_from_save'
+	e:load 'mesh_load'
 	for i, save in ipairs(saves) do
 		local mesh = e.Mesh.load_dir(save)
 		meshes[i] = mesh
@@ -85,7 +85,12 @@ function component:init(props)
 			Uncollidable = false;
 		};
 		confirm = {};
-		token = plugin:GetSetting 'token';
+		auth = {
+			UserId = plugin:GetSetting 'user-id';
+			token = plugin:GetSetting 'refresh-token';
+			session = plugin:GetSetting 'session';
+			attempts = 0;
+		};
 		saves = {};
 		saves_con = {};
 	})
@@ -107,7 +112,10 @@ function component:render()
 				Size = UDim2.new(1, 0, 1, 0);
 			};
 			e.Welcome();
-			e.Auth();
+			e.BeginLink();
+			e.CheckLink();
+			e.Refresh();
+			e.Login();
 			e.Edit();
 			e.Load();
 			e.Generate();
