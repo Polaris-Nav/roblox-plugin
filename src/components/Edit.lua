@@ -142,7 +142,7 @@ function component:render()
 		e.Line {
 			e.HeaderBackground({}, {
 				e.HeaderLabel {
-					Text = 'Meshes';
+					Text = 'Account';
 				};
 				e.TButton {
 					Size = UDim2.new(0, 70, 1, -2);
@@ -159,7 +159,6 @@ function component:render()
 					[e.Roact.Event.Activated] = e.logout;
 				};
 			});
-			e.Line(mesh_rows);
 			e.UIListLayout {
 				FillDirection = Enum.FillDirection.Vertical;
 			};

@@ -201,7 +201,14 @@ function Surface:create_points(parent, color)
 end
 
 function Surface:create_surface(parent, color)
+	if color then
+		self.color = color
+	end
 	color = color or util.rnd_color()
+	if not self:is_convex() then
+		color = Color3.new(1, 0, 0)
+	end
+
 	local model = Instance.new 'Folder'
 	model.Archivable = false
 	local a, b, c = self[1].v3, self[2].v3, self[3].v3
@@ -254,7 +261,10 @@ function Surface:update()
 	end
 
 	local example = self.surface:GetChildren()[1]
-	local color = example.Color
+	local color = self.color
+	if not self:is_convex() then
+		color = Color3.new(1, 0, 0)
+	end
 	local trans = example.Transparency
 	local parent = self.surface.Parent
 	self:destroy_surface()

@@ -59,14 +59,14 @@ function Surface:rmv(id)
 	self[n] = nil
 end
 
-function Surface:check_spin()
+function Surface:is_convex()
 	local a, b = self[#self - 1].v3, self[#self].v3
 	for i, c in ipairs(self) do
 		c = c.v3
 		local ab = b - a
 		local ac = c - a
 		local dot = ac:Cross(ab):Dot(self.normal)
-		if dot < -1e-3 or dot < 0 and ab:Dot(ac) < 0 then
+		if dot < -1e-3 or dot < 1e-7 and ab:Dot(ac) < 0 then
 			return false
 		end
 		a = b

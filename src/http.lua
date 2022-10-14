@@ -294,6 +294,16 @@ function api:generate()
 					.. ' while client is v' .. F._VERSION)
 		end
 
+		local nonconvex = {}
+		for i, surface in ipairs(save.mesh.surfaces) do
+			if not surface:is_convex() then
+				nonconvex[#nonconvex + 1] = i
+			end
+		end
+		if #nonconvex > 0 then
+			e.warn('Received mesh contains non-convex surfaces. Left unfixed, these will cause errors while finding the ground, and some connections to not exist and pathfinding to silently fail. These surfaces will appear red until fixed. The nonconvex surfaces\' IDs are: ' .. table.concat(nonconvex, ', '))
+		end
+
 		save.mesh.Visible = true
 		e.addMesh {
 			mesh = save.mesh;
