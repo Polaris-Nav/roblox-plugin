@@ -69,7 +69,8 @@ function e.reducers:authorized(old, new)
 		new.auth.session = self.session
 		e.plugin:SetSetting('session', self.session)
 	end
-	if #old.meshes == 0 then
+	new = e.reducers.loadMeshes({}, old, new)
+	if #new.meshes == 0 then
 		new.mode = 'Generate'
 	else
 		new.mode = 'Edit'

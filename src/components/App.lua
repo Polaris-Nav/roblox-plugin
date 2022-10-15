@@ -39,34 +39,18 @@ local function updateTheme()
 	}
 end
 
-local function getMeshes(root)
-	local saves = CS:GetTagged 'Polaris-Save'
-	local meshes = {}
-	e:load 'mesh_load'
-	for i, save in ipairs(saves) do
-		local mesh = e.Mesh.load_dir(save)
-		meshes[i] = mesh
-		if mesh.Visible and (not mesh.folder) then
-			e:load 'mesh_visualize'
-			mesh:create_surfaces(root, i, e.CFG.DEFAULT_COLOR)
-		end
-	end
-	return meshes
-end
-
 function component:init(props)
 	local plugin = props.plugin
 	e.plugin = plugin
-
-	local meshes = getMeshes(props.root)
 	
 	e.store = e.Rodux.Store.new(e.rootReducer, {
 		root = props.root;
 		mode = 'Welcome';
-		meshes = meshes;
+		meshes_loaded = false;
+		meshes = {};
 		messages = {};
 		selection = {
-			mesh = #meshes > 0 and #meshes or nil;
+			mesh = nil;
 			type = nil;
 			object = nil;
 		};

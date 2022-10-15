@@ -117,6 +117,7 @@ function e.reducers.authorized(action, old, new)
 		new.mode = 'Generate'
 	else
 		new.mode = 'Edit'
+		e.reducers.loadMeshes({}, old, new)
 	end
 	return new
 end

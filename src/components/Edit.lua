@@ -30,6 +30,21 @@ local function selectedMesh(state, props, fields)
 	return result
 end
 
+local function getMeshes(root)
+	local saves = CS:GetTagged 'Polaris-Save'
+	local meshes = {}
+	e:load 'mesh_load'
+	for i, save in ipairs(saves) do
+		local mesh = e.Mesh.load_dir(save)
+		meshes[i] = mesh
+		if mesh.Visible and (not mesh.folder) then
+			e:load 'mesh_visualize'
+			mesh:create_surfaces(root, i, e.CFG.DEFAULT_COLOR)
+		end
+	end
+	return meshes
+end
+
 function component:render()
 	local mesh_rows = {}
 	local id = self.props.id
@@ -240,6 +255,31 @@ function e.reducers:addMesh(old, new)
 	e.reducers.addMessage(e._info(
 		'Added mesh "' .. self.mesh.Name .. '" to the editor'
 	), old, new)
+
+	return new
+end
+
+function e.reducers:loadMeshes(old, new)
+	if old.loaded_meshes then
+		return new
+	end
+	new.loaded_meshes = true
+	
+	local meshes = getMeshes(old.root)
+	new.meshes = meshes
+	
+	if #meshes > 0 then
+		new.selection = {
+			mesh = 1;
+		}
+	end
+	
+	for i, mesh in ipairs(meshes) do
+		if mesh.Visible and (not mesh.folder) then
+			e:load 'mesh_visualize'
+			mesh:create_surfaces(old.root, id, e.CFG.DEFAULT_COLOR)
+		end
+	end
 
 	return new
 end
