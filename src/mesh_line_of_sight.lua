@@ -21,6 +21,7 @@
 local e = require(script.Parent)
 
 
+local util = e.util
 local Point = e.Point
 local Surface = e.Surface
 local Mesh = e.Mesh
@@ -119,6 +120,9 @@ end
 
 function Surface:line_of_sight(start_v3, goal_v3)
 	local v = goal_v3 - start_v3
+	if v.Magnitude < util.prec then
+		return true
+	end
 	for i, p in ipairs(self) do
 		if v:Cross(p.v3 - start_v3).Y > 0 then
 			return self:_line_of_sight(start_v3, goal_v3, v, i)
@@ -152,7 +156,9 @@ function Mesh:get_visible(pos, surface)
 	local adj = {}
 	for reflex in next, self.reflexes do
 		if surface:line_of_sight(pos, reflex.v3) then
+
 			adj[reflex] = (pos - reflex.v3).Magnitude
+
 		end
 	end
 	return adj

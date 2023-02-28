@@ -29,15 +29,9 @@ local Mesh = e.Mesh
 
 local F = e.format
 
-local function req_v(v)
-	local function cond(data, i, context)
-		return context.version >= v
-	end
-	return function(format)
-		return F.enable_if(cond, format)
-	end
-end
-local V2 = req_v(2)
+local Barrier = F.union(Surface, F.struct {
+	{is_barrier = F.konst(true, F.bool, false)}
+})
 
 F.format('Point', F.struct{
 	{id = F.ID};
@@ -75,8 +69,9 @@ F.format('Mesh', F.struct{
 	{Name = F.String};
 	{Visible = F.Bool};
 	{points = F.list(Point, 'Points')};
-	{c_conns = V2(F.list(CConnection, 'CConns'))};
+	{c_conns = F.GE_VER(2, F.list(CConnection, 'CConns'))};
 	{surfaces = F.list(Surface, 'Surfaces')};
+	{barriers = F.GE_VER(3, F.list(Barrier, 'Barriers'))};
 	{connections = F.list(Connection)};
 })
 

@@ -47,9 +47,20 @@ end
 function Mesh.format:load(data, i)
 	local reflexes = {}
 	self.reflexes = reflexes
+	local is_reflex = Point.is_reflex
 	for i, p in ipairs(self.points) do
-		if p.ptype >= Point.REFLEX then
+		if is_reflex[p.ptype] then
 			reflexes[p] = true
+		end
+		local is_blocked = true
+		for s, id in pairs(p.surfaces) do
+			if not s.is_barrier then
+				is_blocked = false
+				break
+			end
+		end
+		if is_blocked then
+			p.ptype = Point.BLOCKED
 		end
 	end
 
@@ -59,8 +70,12 @@ function Mesh.format:load(data, i)
 end
 
 function Surface.format:load(data, i, context)
-	local a, b, c = self[1].v3, self[2].v3, self[3].v3
-	self.normal = (c - a):Cross(b - a).Unit
+	local is_valid, normal = Surface.calc_normal(self)
+	if not is_valid then
+		warn 'unable to load a surface due to all points being on a line (invalid)'
+		return nil, i
+	end
+	self.normal = normal
 	self.connections = {}
 	self.adjacent = {}
 	for i, p in ipairs(self) do

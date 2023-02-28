@@ -96,10 +96,10 @@ function util.read_a(s, i)
 	local ty
 	ty, i = util.read_t(s, i)
 	if ty == 0 then
-		print 'type = string'
+
 		return util.read_s(s, i)
 	elseif ty == 1 then
-		print 'type = double'
+
 		return util.read_d(s, i)
 	else
 		error('Received unknown field type: ' .. tostring(ty))
@@ -157,6 +157,10 @@ function F.Any:load(data, i)
 end
 
 function util.load(data, i, format, context)
+	if not format then
+		return
+	end
+	
 	-- custom types have a "format" property
 	local class
 	if format.format then
@@ -170,7 +174,9 @@ function util.load(data, i, format, context)
 	if format == F.ID then
 		obj = #context[#context] + 1
 	elseif format.type then
-		if format.type == 'ref' then
+		if format.type == 'compat' then
+			obj, i = util.load(data, i, format.func(context), context)
+		elseif format.type == 'ref' then
 			local id
 			id, i = util.read_i(data, i)
 			obj = context[format.of][id]

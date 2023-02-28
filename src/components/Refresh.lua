@@ -71,7 +71,7 @@ function component:render()
 end
 
 function e.reducers:set_session(old, new)
-	new.session = self.session
+	new.auth.session = self.session
 	return new
 end
 

@@ -30,6 +30,7 @@ function Mesh.new()
 		points = {};
 		reflexes = {};
 		surfaces = {};
+		barriers = {};
 		connections = {};
 		c_conns = {};
 
@@ -61,6 +62,13 @@ function Mesh:add_surface(surface)
 	surface.id = id
 end
 
+function Mesh:add_barrier(surface)
+	local id = #self.barriers + 1
+	self.barriers[id] = surface
+	surface.id = id
+	surface.is_barrier = true
+end
+
 function Mesh:add_action(action)
 	local id = #self.c_conns + 1
 	self.c_conns[id] = action
@@ -78,18 +86,37 @@ end
 
 function Mesh:rmv_point(point)
 	local t = self.points
-	t[point.id] = t[#t]
-	t[#t] = nil
+	local rep = t[#t]
+	t[point.id] = rep
+	if rep then
+		t[#t] = nil
+		rep.id = point.id
+	end
+	point.id = nil
 end
 
 
 function Mesh:remove(surface)
 	local t = self.surfaces
-	t[surface.id] = t[#t]
+	local rep = t[#t]
+	t[surface.id] = rep
 	t[#t] = nil
 
 	local aabb = surface:get_AABB()
-	return self.octree:remove(aabb, surface)
+	self.octree:remove(aabb, surface)
+	
+	if rep then
+		rep.id = surface.id
+	end
+	
+	surface.id = nil
+
+	for i, p in ipairs(surface) do
+		p.surfaces[surface] = nil
+		if not next(p.surfaces) then
+			self:rmv_point(p)
+		end
+	end
 end
 
 
@@ -101,7 +128,7 @@ function Mesh:cache_lines()
     end
     for i, p in ipairs(self.points) do
         for s in next, p.surfaces do
-            if not p.lines_by_s[s] then
+            if not s.is_barrier and not p.lines_by_s[s] then
                 error('bad cache lines. ' .. p.id .. ' has ' .. s.id .. ' in surfaces, but not lines_by_s.')
             end
         end

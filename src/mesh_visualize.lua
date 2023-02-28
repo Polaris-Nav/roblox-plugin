@@ -35,6 +35,7 @@ function util.create_point(pos, parent)
 	p.Anchored = true
 	p.Size = Vector3.new(1, 1, 1)
 	p.Position = pos
+	p.Locked = true
 	p.Parent = parent
 	return p
 end
@@ -46,9 +47,10 @@ function util.create_line(pos, dir, parent)
 	p.BottomSurface = Enum.SurfaceType.Smooth
 	p.TopSurface = Enum.SurfaceType.Smooth
 	p.Anchored = true
-	p.Color = Color3.new(1, 0, 0)
+	p.Color = Color3.new(0, 0, 0.8)
 	p.Size = Vector3.new(0.05, 0.05, dir.Magnitude)
 	p.CFrame = CFrame.new(pos + dir / 2, pos + dir)
+	p.Locked = true
 	p.Parent = parent
 	return p
 end
@@ -61,6 +63,7 @@ local function spawnTrianglePart(parent)
 	p.TopSurface = 0
 	p.formFactor = "Custom"
 	p.Size = Vector3.new(1,1,1)
+	p.Locked = true
 	p.Parent = parent or game.Workspace
 	return p
 end
@@ -186,6 +189,7 @@ end
 function Surface:create_points(parent, color)
 	color = color or util.rnd_color()
 	local model = Instance.new 'Folder'
+	model.Archivable = false
 	for i, point in ipairs(self) do
 		point:create(model)
 		point.part.Name = point.part.Name .. ' ' .. tostring(i)
@@ -204,15 +208,19 @@ function Surface:create_surface(parent, color)
 	if color then
 		self.color = color
 	end
+
 	color = color or util.rnd_color()
+
 	if not self:is_convex() then
 		color = Color3.new(1, 0, 0)
 	end
 
 	local model = Instance.new 'Folder'
 	model.Archivable = false
+
 	local a, b, c = self[1].v3, self[2].v3, self[3].v3
 	util.create_triangle(a, b, c, model, self.thickness)
+
 	local center = a + b + c
 	for i = 4, #self do
 		b = c
@@ -222,6 +230,7 @@ function Surface:create_surface(parent, color)
 	end
 	center = center / #self
 	util.create_line(center, self.normal * 1, model)
+
 	for i, p in ipairs(model:GetChildren()) do
 		p.Color = color
 		p.Transparency = 0.5
@@ -292,6 +301,7 @@ function Connection:create_bounds(parent, color)
 	local d = st:get_p(self.j2, self.u2)
 
 	local model = Instance.new 'Model'
+	model.Archivable = false
 	model.Name = 'Connection ' .. self.action .. ':' .. self.fromID .. '->' .. self.toID
 
 	util.create_line(a, b - a, model)
@@ -311,6 +321,7 @@ end
 
 function Mesh:create_surfaces(root, mesh_id, color_s)
 	local folder = Instance.new 'Folder'
+	folder.Archivable = false
 	folder.Name = 'Mesh ' .. mesh_id
 	for i, surface in ipairs(self.surfaces) do
 		surface:create_surface(folder, color_s)
@@ -328,12 +339,7 @@ function Mesh:create_surfaces(root, mesh_id, color_s)
 	-- end
 
 	-- create all reflex connections
-	-- for i, p1 in ipairs(self.points) do
-	-- 	for p2, cost in next, p1.sight do
-	-- 		local l = e.util.create_line(p1.v3, p2.v3 - p1.v3, folder)
-	-- 		CS:AddTag(l, 'Polaris-Mesh')
-	-- 	end
-	-- end
+
 
 	CS:AddTag(folder, 'Polaris-Mesh')
 	folder.Parent = root

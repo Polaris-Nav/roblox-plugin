@@ -127,17 +127,21 @@ function Surface:from_part(part)
 	end
 end
 
+local max_walk_angle = 89
+local min_normal_y = math.cos(math.rad(max_walk_angle))
 function Mesh.from_parts(parts)
 	local mesh = Mesh.new()
 	for i, part in ipairs(parts) do
 		for j, surface in ipairs{e.Surface:from_part(part)} do
-			if surface.normal.Y > 0 then
-				mesh:add_surface(surface)
-				for k, point in ipairs(surface) do
-					if not point.id then
-						mesh:add_point(point)
-					end
+			for k, point in ipairs(surface) do
+				if not point.id then
+					mesh:add_point(point)
 				end
+			end
+			if surface.normal.Y >= min_normal_y then
+				mesh:add_surface(surface)
+			else
+				mesh:add_barrier(surface)
 			end
 		end
 	end

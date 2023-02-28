@@ -25,7 +25,7 @@ local e = require(script.Parent)
 
 local Ref_MT = {};
 local F = {
-	_VERSION = 2;
+	_VERSION = 3;
 	ID = {};
 	V3 = {};
 	Byte = {};
@@ -95,6 +95,13 @@ function F.save(name, v_format)
 	}
 end
 
+function F.compat(func)
+	return {
+		type = 'compat';
+		func = func;
+	}
+end
+
 function F.enable_if(cond, v_format)
 	return {
 		type = 'enable_if';
@@ -111,6 +118,16 @@ end
 function F.new(name, t)
 	t.name = name
 	F[name] = t
+end
+
+function F.GE_VER(ver, on_true, on_false)
+	return F.compat(function(ctx)
+		if ctx.version >= ver then
+			return on_true
+		else
+			return on_false
+		end
+	end)
 end
 
 function Ref_MT:__index(name)

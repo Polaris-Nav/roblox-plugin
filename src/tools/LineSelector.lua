@@ -18,6 +18,7 @@
 local KC = Enum.KeyCode
 
 local LineSelector = {
+	name = 'LineSelector';
 	shortcut = {KC.LeftShift, KC.Two};
 }
 

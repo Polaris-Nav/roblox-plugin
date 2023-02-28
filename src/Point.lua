@@ -41,6 +41,8 @@ local Point = {
 	
 		["GOAL"] = 7;
 	
+		["BLOCKED"] = 8;
+	
 }
 local ptype_name = {
 	
@@ -60,6 +62,14 @@ local ptype_name = {
 	
 		[7] = "GOAL";
 	
+		[8] = "BLOCKED";
+	
+}
+Point.is_reflex = {
+	[Point.REFLEX] = true;
+	[Point.INTER] = true;
+	[Point.ACTION] = true;
+	[Point.GOAL] = true;
 }
 
 Point.MT = {__index = Point}

@@ -53,11 +53,9 @@ function e.reducers:attempt_link(old, new)
 end
 
 function e.reducers:link_success(old, new)
-	print 'link success'
 	new.auth.token = self.token
 	new.auth.session = self.session
 	new.auth.Code = nil
-	print(self, self.token, self.id, self.session)
 	e.plugin:SetSetting('refresh-token', self.token)
 	e.plugin:SetSetting('session', self.session)
 	e.plugin:SetSetting('user-id', self.id)

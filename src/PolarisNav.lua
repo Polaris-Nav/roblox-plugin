@@ -46,6 +46,7 @@ function PolarisNav:activate()
 	if not root then
 		root = Instance.new 'Folder'
 		root.Name = 'Polaris-Nav'
+		root.Archivable = false
 		root.Parent = workspace
 	end
 

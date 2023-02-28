@@ -120,13 +120,19 @@ function F.Any:save(data)
 end
 
 function util.save(data, obj, format, context)
+	if not format then
+		return
+	end
+
 	-- custom types have a "format" property
 	format = format.format or format
 
 
 
 	if format.type then
-		if format.type == 'ref' then
+		if format.type == 'compat' then
+			util.save(data, obj, format.func(context), context)
+		elseif format.type == 'ref' then
 			a(data, util.i2b(obj.id))
 		elseif format.type == 'konst' then
 			if format.is_serialized then
@@ -134,6 +140,11 @@ function util.save(data, obj, format, context)
 			end
 		elseif format.type == 'save' then
 			util.save(data, obj, format.v_format, context)
+			if format.v_format.type == 'konst' then
+				context[format.name] = format.v_format.value
+			else
+				context[format.name] = obj
+			end
 		elseif format.type == 'enable_if' then
 			util.save(data, obj, format.v_format, context)
 		elseif format.type == 'union' then

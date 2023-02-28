@@ -19,6 +19,7 @@ local use_local = false
 local use_dev = false
 local use_test = true
 local mode = use_dev and 'dev' or use_test and 'test' or 'api'
+local url = use_local and 'http://192.168.1.158' or ('https://' .. mode .. '.Polaris-Nav.com')
 
 return {
 	DEFAULT_COLOR = Color3.new(0.4, 0.8, 0.4);
@@ -33,5 +34,5 @@ return {
 
 	DIST_SAME_VERT = 0.01;
 
-	url = use_local and 'http://192.168.1.158' or ('https://' .. mode .. '.Polaris-Nav.com');
+	url = url;
 }

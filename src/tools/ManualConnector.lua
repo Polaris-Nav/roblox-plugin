@@ -20,6 +20,7 @@ local e = require(script.Parent.Parent)
 local KC = Enum.KeyCode
 
 local ManualConnector = {
+	name = 'ManualConnector';
 	shortcut = {KC.LeftShift, KC.C};
 }
 

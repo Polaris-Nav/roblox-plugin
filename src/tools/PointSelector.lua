@@ -22,6 +22,7 @@ local CS = game:GetService 'CollectionService'
 local KC = Enum.KeyCode
 
 local PointSelector = {
+	name = 'PointSelector';
 	shortcut = {KC.LeftShift, KC.One};
 }
 

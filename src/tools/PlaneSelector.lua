@@ -20,6 +20,7 @@ local e = require(script.Parent.Parent)
 local KC = Enum.KeyCode
 
 local PlaneSelector = {
+	name = 'PlaneSelector';
 	shortcut = {KC.LeftShift, KC.Three};
 }
 

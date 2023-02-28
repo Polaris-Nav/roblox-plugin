@@ -19,7 +19,27 @@
 
 local util = {}
 
+local prec = 1e-3
+util.prec = prec
 
+local prec2 = prec^2
+
+-- compute epsilon real quick
+local e = 1
+while 1 + e ~= 1 do
+	e = e * 0.5
+end
+util.e = e
+
+
+
+function util.mod1_dec(x, m)
+	return (x - 2) % m + 1
+end
+
+function util.mod1_inc(x, m)
+	return x % m + 1
+end
 
 function util.bind(f, obj)
 	return function(...)

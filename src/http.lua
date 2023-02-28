@@ -64,6 +64,7 @@ function Request:default_throw(args)
 				e.set_session {
 					session = session;
 				}
+				self.predecessor.args.Headers.session = session
 				self:Stop()
 				return self.predecessor:RepeatAsync()
 			end)
