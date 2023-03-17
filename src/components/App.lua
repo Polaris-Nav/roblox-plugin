@@ -15,83 +15,54 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local e = require(script.Parent)
+local e = _G.PolarisNav
 
+local RS = game:GetService 'RunService'
 local CS = game:GetService 'CollectionService'
 local studio = settings().Studio
 
--- include tool reducers
-require(script.Parent.Parent.tool_reducers)
-
 local component = e.Roact.Component:extend(script.Name)
 
-local function updateTheme()
-	local colors = {}
-	local theme = studio.Theme
-
-	for i, item in ipairs(Enum.StudioStyleGuideColor:GetEnumItems()) do
-		colors[item.Name] = theme:GetColor(item.Value)
-	end
-
-	e.store:dispatch {
-		type = 'themeChanged';
-		colors = colors;
-	}
-end
-
 function component:init(props)
-	local plugin = props.plugin
-	e.plugin = plugin
-	
-	e.store = e.Rodux.Store.new(e.rootReducer, {
-		root = props.root;
-		mode = 'Welcome';
-		meshes_loaded = false;
-		meshes = {};
-		messages = {};
-		selection = {
-			mesh = nil;
-			type = nil;
-			object = nil;
-		};
-		params = {
-			Gravity = workspace.Gravity;
-			JumpPower = 50;
-			WalkSpeed = 16;
-			Radius = 1;
-			Height = 5;
-		};
-		include = {};
-		filter = {
-			Humanoids = true;
-			Tools = true;
-			Unanchored = true;
-			Uncollidable = false;
-		};
-		confirm = {};
-		auth = {
-			UserId = plugin:GetSetting 'user-id';
-			token = plugin:GetSetting 'refresh-token';
-			session = plugin:GetSetting 'session';
-			attempts = 0;
-		};
-		saves = {};
-		saves_con = {};
-	})
+	local plugin = e.plugin
 
-	e.refreshSaves{}
+	e.store = e.Rodux.Store.new(e.reducers)
 
-	updateTheme()
-	studio.ThemeChanged:Connect(updateTheme)
+	self.bar = plugin:CreateToolbar 'Polaris-Nav'
 
-	e.tools.connect(props.plugin, e.store, props.root)
+	local is_enabled = RS:IsEdit();
+	local is_active = is_enabled and plugin:GetSetting 'is_active' or false;
+	self.state = {
+		is_enabled = is_enabled;
+		is_active = is_active;
+	}
+
+	self.button = self.bar:CreateButton(
+		'Editor',
+		'Toggle the Polaris-Nav Editor',
+		'rbxassetid://8997413571')
+	self.button:SetActive(is_active)
+	self.button.Enabled = is_enabled
+	self.button.Click:Connect(function()
+		self:setState(function(state, props)
+			return {
+				is_active = not state.is_active
+			}
+		end)
+	end)
+
+	studio.ThemeChanged:Connect(e.go.colors_refresh)
+	e.tools.connect(plugin, e.store, e.store:getState().root)
 end
 
 function component:render()
+	e.plugin:SetSetting('is_active', self.state.is_active)
 	return e.StoreProvider({
 		store = e.store,
 	}, {
-		e.Window({}, {
+		e.Window({
+			is_active = self.state.is_active
+		}, {
 			e.Pane {
 				Size = UDim2.new(1, 0, 1, 0);
 			};
@@ -118,19 +89,6 @@ function component:willUnmount()
 	for i, instance in ipairs(CS:GetTagged 'Polaris-Point') do
 		instance:Destroy()
 	end
-	--e.plugin:SetSetting('state', e.store:getState())
-end
-
-function e.reducers.transferToken(action, old, new)
-	if state.token == nil then
-		state.token = action.token
-	end
-	return new
-end
-
-function e.reducers.themeChanged(action, old, new)
-	new.colors = action.colors
-	return new
 end
 
 return component

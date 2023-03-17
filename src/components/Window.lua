@@ -15,7 +15,9 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local e = require(script.Parent)
+local e = _G.PolarisNav
+
+local RS = game:GetService 'RunService'
 
 local component = e.Roact.Component:extend(script.Name)
 
@@ -32,17 +34,29 @@ function component:init(props)
 end
 
 function component:render()
+	self.win.Enabled = self.props.is_active
 	return e.Roact.createElement(e.Roact.Portal, {
 		target = self.win
 	}, self.props[e.Roact.Children])
 end
 
-function component:didMount()
-	self.win.Enabled = true
+local function size_update(window)
+	local cur_size = window.AbsoluteSize
+	local old_size = e.store:getState().size
+	if cur_size.X ~= old_size.X or cur_size.Y ~= old_size.Y then
+		e.go.size_set(cur_size)
+	end
 end
-
+function component:didMount()
+	self.update_con = RS.PostSimulation:Connect(e.bind(size_update, self.win))
+end
 function component:willUnmount()
 	self.win:Destroy()
+	self.update_con:Disconnect()
 end
 
-return component
+return e.connect(function(state)
+	return {
+		is_active = state.is_active
+	}
+end)(component)

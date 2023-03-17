@@ -20,9 +20,13 @@
 local util = {}
 
 local prec = 1e-3
+local prec2 = prec^2
 util.prec = prec
 
-local prec2 = prec^2
+local abs = math.abs
+
+local max_parallel_angle = 1
+local mpa_cos = math.cos(max_parallel_angle/360 * 2*math.pi)
 
 -- compute epsilon real quick
 local e = 1

@@ -17,8 +17,7 @@
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-
-local e = require(script.Parent)
+local e = _G.PolarisNav
 
 
 e:load 'mesh_format'
@@ -72,8 +71,7 @@ end
 function Surface.format:load(data, i, context)
 	local is_valid, normal = Surface.calc_normal(self)
 	if not is_valid then
-		warn 'unable to load a surface due to all points being on a line (invalid)'
-		return nil, i
+		warn('Surface ' .. self.id .. ' has all points on a single line or point, this will lead to later errors if not fixed.')
 	end
 	self.normal = normal
 	self.connections = {}
@@ -83,6 +81,12 @@ function Surface.format:load(data, i, context)
 	end
 	for p, c_conn in next, self.c_conns do
 		p:add(self, c_conn)
+	end
+	if not self:is_convex() then
+		warn('Surface ' .. self.id .. ' is not convex, this will lead to later errors if not fixed.')
+	end
+	if not self:is_coplanar() then
+		warn('Surface ' .. self.id .. ' is not coplanar, this will lead to later errors if not fixed.')
 	end
 	return self, i
 end

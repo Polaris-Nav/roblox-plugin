@@ -15,63 +15,9 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local e = require(script.Parent)
+local e = _G.PolarisNav
 
 local component = e.Roact.PureComponent:extend(script.Name)
-
-function component:init()
-	self.user = e.Roact.createRef()
-	self.code = e.Roact.createRef()
-end
-
-local function selectAuth(state, props, fields)
-	local result = {}
-	for i, k in ipairs(fields) do
-		result[k] = state.auth[k]
-	end
-	return result
-end
-
-local function link(obj, input, clicks)
-	local state = e.store:getState()
-
-	local id = state.auth.UserId
-	if id == nil then
-		e.warn 'Missing UserId'
-	end
-
-	local code = state.auth.Code
-	if code == nil then
-		e.warn 'Missing Code'
-	end
-
-	local http = e.http
-
-	e.promise {
-		id = id;
-		code = code;
-	}
-	:Then(http.get_challenge)
-	:Then(function(self, challenge)
-		self.challenge = challenge
-	end)
-	:Then(e.attempt_link)
-	:Then(function(self)
-		self.solution = e.NanoPoW.calculate(self.challenge)
-	end)
-	:Then(http.link)
-	:Then(function(self, results)
-		self.token = results.token
-		self.session = results.session
-	end)
-	:Then(e.link_success)
-	:Else(function(self)
-		e.warn(self.msg)
-	end)
-	:Else(e.link_fail)
-	:Continue()
-end
-
 function component:render()
 	return e.Context({
 		Name = 'BeginLink'
@@ -90,6 +36,7 @@ function component:render()
 			};
 			e.Pane({
 				Size = UDim2.new(1, 0, 0, 27);
+				AutomaticSize = Enum.AutomaticSize.Y;
 			}, {
 				e.TLabel {
 					Text = 'Polaris-Nav Center:';
@@ -98,17 +45,18 @@ function component:render()
 				e.TBox {
 					Text = 'https://roblox.com/games/9860827919';
 					TextEditable = false;
-					Size = UDim2.new(1, -150, 1, 0);
+					TextTruncate = Enum.TextTruncate.None;
+					TextWrapped = true;
+					Size = UDim2.new(1, -150, 0, 0);
 					Position = UDim2.new(0, 150, 0, 0);
+					AutomaticSize = Enum.AutomaticSize.Y;
 				};
 			});
 			e.Rows {
 				Name = 'One-time Pass';
-				select = selectAuth;
-				onChanged = e.set_otp;
 				rows = {
-					{'UserId', 00000000};
-					{'Code', 00000000};
+					{'UserId', 1234, nil, {'auth', 'UserId'}};
+					{'Code', 123456789, nil, {'auth', 'Code'}};
 				};
 			};
 			e.Pane({
@@ -124,18 +72,16 @@ function component:render()
 						Text = 'Skip';
 						Size = UDim2.new(0, 100, 1, 0);
 						[e.Roact.Event.Activated] = function(obj, input, clicks)
-							e.requireConfirm {
-								text = 'If you do not link your account, you will not be able to automatically generate a mesh. Instead, you will have to manually create your mesh.';
-								onConfirm = {
-									type = 'authorized';
-								};
-							}
+							e.go.confirm_show(
+								'If you do not link your account, you will not be able to automatically generate a mesh. Instead, you will have to manually create your mesh.',
+								e.op.authorized
+							)
 						end;
 					};
 					e.MainTButton {
 						Text = 'Continue';
 						Size = UDim2.new(0, 100, 1, 0);
-						[e.Roact.Event.Activated] = link
+						[e.Roact.Event.Activated] = e.op.link
 					};
 					e.UIListLayout {
 						FillDirection = Enum.FillDirection.Horizontal;
@@ -153,19 +99,6 @@ function component:render()
 			};
 		})
 	})
-end
-
-function e.reducers:set_otp(old, new)
-	for i, row in ipairs(self.values) do
-		new.auth[row[1]] = row[2]
-	end
-	return new
-end
-
-function e.reducers:link_fail(old, new)
-	print 'link fail'
-	new.mode = 'BeginLink'
-	return new
 end
 
 return component

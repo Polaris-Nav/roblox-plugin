@@ -15,7 +15,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local e = require(script.Parent)
+local e = _G.PolarisNav
 
 local function component(props)
 	local msgs = {}
@@ -30,36 +30,6 @@ local function component(props)
 		AutomaticSize = Enum.AutomaticSize.Y;
 		BackgroundTransparency = 0.5;
 	}, msgs)
-end
-
-function e.reducers.addMessage(action, old, new)
-	local messages = {}
-	for i, v in ipairs(old.messages) do
-		messages[i] = v
-	end
-	messages[#messages + 1] = action.message
-
-	-- Automatic message removal
-	task.delay(action.delay, function()
-		e.store:dispatch {
-			type = 'rmvMessage';
-			message = action.message;
-		}
-	end)
-
-	new.messages = messages
-	return new
-end
-
-function e.reducers.rmvMessage(action, old, new)
-	local messages = {}
-	for i, v in ipairs(old.messages) do
-		if v ~= action.message then
-			messages[#messages + 1] = v
-		end
-	end
-	new.messages = messages
-	return new
 end
 
 return e.connect(function(state, props)

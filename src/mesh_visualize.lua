@@ -15,7 +15,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local e = require(script.Parent)
+local e = _G.PolarisNav
 
 local CS = game:GetService 'CollectionService'
 
@@ -153,6 +153,7 @@ function Point:create(parent, props)
 	p.Anchored = true
 	p.Size = Vector3.new(0.2, 0.2, 0.2)
 	p.Position = self.v3
+	p.Locked = true
 	self.part = p
 	if props then
 		self:set_props(props)
@@ -190,17 +191,39 @@ function Surface:create_points(parent, color)
 	color = color or util.rnd_color()
 	local model = Instance.new 'Folder'
 	model.Archivable = false
+
 	for i, point in ipairs(self) do
 		point:create(model)
 		point.part.Name = point.part.Name .. ' ' .. tostring(i)
 	end
+
 	for at, action in next, self.c_conns do
 		at:create(model)
 	end
+
 	self.points = model
 	model.Name = 'Points ' .. self.id
 	model.Parent = parent
-	CS:AddTag(model, 'Polaris-Mesh')
+	CS:AddTag(model, 'Polaris-Points')
+	return model
+end
+
+function Surface:create_outline(parent, color)
+	color = color or util.rnd_color()
+	local model = Instance.new 'Folder'
+	model.Archivable = false
+
+	local a = self[#self].v3
+	for i, point in ipairs(self) do
+		local b = point.v3
+		util.create_line(a, b - a, model)
+		a = b
+	end
+
+	self.lines = model
+	model.Name = 'Outline ' .. self.id
+	model.Parent = parent
+	CS:AddTag(model, 'Polaris-Outline')
 	return model
 end
 
@@ -211,7 +234,7 @@ function Surface:create_surface(parent, color)
 
 	color = color or util.rnd_color()
 
-	if not self:is_convex() then
+	if not self:is_convex() or not self:is_coplanar() then
 		color = Color3.new(1, 0, 0)
 	end
 
@@ -233,7 +256,7 @@ function Surface:create_surface(parent, color)
 
 	for i, p in ipairs(model:GetChildren()) do
 		p.Color = color
-		p.Transparency = 0.5
+		p.Transparency = e.CFG.DEFAULT_TRANS;
 	end
 	self.surface = model
 	model.Name = 'Surface ' .. self.id
@@ -271,7 +294,7 @@ function Surface:update()
 
 	local example = self.surface:GetChildren()[1]
 	local color = self.color
-	if not self:is_convex() then
+	if not self:is_convex() or not self:is_coplanar() then
 		color = Color3.new(1, 0, 0)
 	end
 	local trans = example.Transparency
@@ -319,13 +342,32 @@ function Connection:create_bounds(parent, color)
 	return model
 end
 
-function Mesh:create_surfaces(root, mesh_id, color_s)
+function Mesh:set_visible(visible)
+	if visible == self.Visible then
+		return
+	end
+	if visible then
+		self:create_surfaces()
+	else
+		self:destroy_surfaces()
+	end
+end
+
+function Mesh:destroy_surfaces()
+	self.folder:Destroy()
+	self.folder = nil
+end
+
+function Mesh:create_surfaces()
+	local root = e.store:getState().root
+	local color = e.CFG.DEFAULT_COLOR
+
 	local folder = Instance.new 'Folder'
 	folder.Archivable = false
-	folder.Name = 'Mesh ' .. mesh_id
+	folder.Name = 'Mesh ' .. (self.id or self.Name)
 	for i, surface in ipairs(self.surfaces) do
-		surface:create_surface(folder, color_s)
-		surface:create_points(folder, color_s)
+		surface:create_surface(folder, color)
+		surface:create_points(folder, color)
 	end
 
 	for i, c_conn in ipairs(self.c_conns) do

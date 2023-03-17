@@ -15,47 +15,26 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local e = require(script.Parent)
+local e = _G.PolarisNav
 
 local component = e.Roact.PureComponent:extend(script.Name)
 local CS = game:GetService 'CollectionService'
+local TS = game:GetService 'TextService'
 
-local function selectedMesh(state, props, fields)
-	local id = state.selection.mesh
-	local mesh = id and state.meshes[id] or {};
-	local result = {}
-	for i, k in ipairs(fields) do
-		result[k] = mesh[k]
-	end
-	return result
-end
-
-local function getMeshes(root)
-	local saves = CS:GetTagged 'Polaris-Save'
-	local meshes = {}
-	e:load 'mesh_load'
-	for i, save in ipairs(saves) do
-		local mesh = e.Mesh.load_dir(save)
-		meshes[i] = mesh
-		if mesh.Visible and (not mesh.folder) then
-			e:load 'mesh_visualize'
-			mesh:create_surfaces(root, i, e.CFG.DEFAULT_COLOR)
-		end
-	end
-	return meshes
+local function sort_by_priority(a, b)
+	return a.priority < b.priority
 end
 
 function component:render()
 	local mesh_rows = {}
-	local id = self.props.id
-	for i, name in ipairs(self.props.names) do
-		local is_cur = id == i
+	local selection = self.props.selection
+	for i, mesh in ipairs(self.props.meshes) do
 		mesh_rows[i] = e.RowTButton {
-			is_selected = id == i;
-			Text = name;
+			is_selected = selection[mesh] or false;
+			Text = mesh.Name;
 			onActivated = function()
-				e.selectMesh {
-					id = i;
+				e.go.selection_update {
+					[mesh] = not selection[mesh];
 				}
 			end;
 		}
@@ -74,81 +53,114 @@ function component:render()
 		PaddingBottom = UDim.new(0, 10);
 	}
 
-	local rows
-	local actions
-	if id and not self.props.type then
-		rows = {
-			{'Name', 'Mesh'};
-			{'Visible', true};
-		}
-		actions = {
-			e.TButton {
-				Text = 'Remove';
-				TextSize = 10;
-				Size = UDim2.new(0.35, 0, 0, 30);
-				Position = UDim2.new(0.1, 0, 0, 10);
-				[e.Roact.Event.Activated] = function(obj, input, clicks)
-					if id then
-						e.rmvMesh {
-							mesh = self.props.mesh
-						}
-					end
-				end;
+	local sections = {}
+	for name, cact in next, e.context_actions do
+		if cact.is_relevant() then
+			local sect = sections[cact.section]
+			if not sect then
+				sect = {
+					button = {};
+					property = {};
+				}
+				sections[cact.section] = sect
+			end
+			sect = sect[cact.type]
+			sect[#sect + 1] = cact
+		end
+	end
+
+	local max_width = self.props.width
+	local font_enum = Enum.Font.SourceSans
+	local font = Font.fromEnum(font_enum)
+
+	local children = {}
+	for name, types in next, sections do
+		local sect_children = {
+			e.UIListLayout {
+				FillDirection = Enum.FillDirection.Vertical;
+				Padding = UDim.new(0, 10);
+				SortOrder = Enum.SortOrder.LayoutOrder;
 			};
-
-			e.TButton {
-				Text = 'Save';
-				TextSize = 10;
-				Size = UDim2.new(0.35, 0, 0, 30);
-				Position = UDim2.new(0.55, 0, 0, 10);
-				[e.Roact.Event.Activated] = function(obj, input, clicks)
-					if not id then
-						return
-					end
-					local mesh = self.props.mesh
-
-					local root = Instance.new 'Folder'
-					root.Name = mesh.Name
-					e:load 'mesh_save'
-					mesh:save_dir(root)
-
-					local parent = game:GetService 'ServerStorage'
-					local existing = parent:FindFirstChild(mesh.Name)
-					if existing and CS:HasTag(existing, 'Polaris-Save') then
-						e.requireConfirm {
-							text = 'A mesh named "' .. mesh.Name .. '" already exists in ServerStorage. Do you want to continue and overwrite it? If not, the mesh will not be saved.';
-							onConfirm = {
-								type = 'save';
-								parent = parent;
-								root = root;
-								existing = existing;
-							};
-						}
-					else
-						e.save {
-							parent = parent;
-							root = root;
-						}
-					end
-				end;
+			e.UIPadding {
+				PaddingTop = UDim.new(0, 10);
 			};
 		}
-	elseif self.props.type == 'point' then
-		rows = {
-		}
-		actions = {
-			e.TButton {
-				Text = 'Delete';
-				TextSize = 10;
-				Size = UDim2.new(0.35, 0, 0, 30);
-				Position = UDim2.new(0.1, 0, 0, 10);
-				[e.Roact.Event.Activated] = function(obj, input, clicks)
-					e.deletePoint{}
-				end;
+		local props = {}
+		for i, cact in ipairs(types.property) do
+			props[i] = e.Row {
+				i = i;
+				name = cact.name;
+				hint = cact.hint;
+				units = cact.units;
+				path = cact.path;
+				data = cact.data;
+			};
+		end
+		if #props > 0 then
+			props[#props + 1] = e.UIListLayout {
+				FillDirection = Enum.FillDirection.Vertical;
+			};
+			sect_children[#sect_children + 1] = e.Line(props)
+		end
+
+		local line = {
+			e.UIListLayout {
+				FillDirection = Enum.FillDirection.Horizontal;
+				Padding = UDim.new(0, 10);
+				HorizontalAlignment = Enum.HorizontalAlignment.Center;
+				SortOrder = Enum.SortOrder.LayoutOrder;
 			};
 		}
-	else
-		rows = {}
+		local remaining_width = max_width
+		for i, cact in ipairs(types.button) do
+			local params = Instance.new 'GetTextBoundsParams'
+			params.Text = cact.name
+			params.Font = font
+			params.Size = 15
+			params.Width = max_width
+			local size = TS:GetTextBoundsAsync(params)
+
+			local width = size.X + 10
+			local height = size.Y + 10
+
+			if width > remaining_width then
+				remaining_width = max_width
+				sect_children[#sect_children + 1] = e.Line(line)
+				line = {
+					e.UIListLayout {
+						FillDirection = Enum.FillDirection.Horizontal;
+						Padding = UDim.new(0, 10);
+						HorizontalAlignment = Enum.HorizontalAlignment.Center;
+						SortOrder = Enum.SortOrder.LayoutOrder;
+					};
+				}
+			end
+
+			remaining_width = remaining_width - width - 10
+
+			line[#line + 1] = e.TButton {
+				Text = cact.name;
+				Font = font_enum;
+				TextSize = 15;
+				Size = UDim2.new(0, width, 0, height);
+				LayoutOrder = cact.priority;
+				[e.Roact.Event.Activated] = cact.on_action;
+			};
+		end
+		if #line > 1 then
+			sect_children[#sect_children + 1] = e.Line(line)
+		end
+
+		children[#children + 1] = e.Section({
+			Name = name;
+		}, {
+			e.Pane({
+				Size = UDim2.new(1, 0, 0, 50);
+			}, sect_children)
+		});
+		children[#children + 1] = e.UIListLayout {
+			FillDirection = Enum.FillDirection.Vertical;
+		};
 	end
 
 	return e.Context({
@@ -164,14 +176,14 @@ function component:render()
 					Position = UDim2.new(1, -70 -20 -70, 0, 1);
 					TextSize = 10;
 					Text = 'Unlink';
-					[e.Roact.Event.Activated] = e.unlink;
+					[e.Roact.Event.Activated] = e.op.unlink;
 				};
 				e.TButton {
 					Size = UDim2.new(0, 70, 1, -2);
 					Position = UDim2.new(1, -70, 0, 1);
 					TextSize = 10;
 					Text = 'Logout';
-					[e.Roact.Event.Activated] = e.logout;
+					[e.Roact.Event.Activated] = e.op.logout;
 				};
 			});
 			e.UIListLayout {
@@ -189,14 +201,14 @@ function component:render()
 					Position = UDim2.new(1, -70 -20 -70, 0, 1);
 					TextSize = 10;
 					Text = 'New';
-					[e.Roact.Event.Activated] = e.newMesh;
+					[e.Roact.Event.Activated] = e.bind(e.go.mode_set, 'Generate');
 				};
 				e.TButton {
 					Size = UDim2.new(0, 70, 1, -2);
 					Position = UDim2.new(1, -70, 0, 1);
 					TextSize = 10;
 					Text = 'Load';
-					[e.Roact.Event.Activated] = e.loadMesh;
+					[e.Roact.Event.Activated] = e.bind(e.go.mode_set, 'Load');
 				};
 			});
 			e.Line(mesh_rows);
@@ -205,20 +217,7 @@ function component:render()
 			};
 		};
 
-		e.Section({
-			Name = 'Actions';
-		}, {
-			e.Pane({
-				Size = UDim2.new(1, 0, 0, 50);
-			}, actions)
-		});
-
-		e.Rows {
-			Name = 'Properties';
-			select = selectedMesh;
-			onChanged = e.setProps;
-			rows = rows;
-		};
+		e.Line(children);
 
 		e.UIPadding {
 			PaddingTop = UDim.new(0, 20);
@@ -231,181 +230,10 @@ function component:render()
 	})
 end
 
-function e.reducers:addMesh(old, new)
-	local meshes = {}
-	for i, mesh in ipairs(old.meshes) do
-		meshes[i] = mesh
-	end
-	local id = #meshes + 1
-	meshes[#meshes + 1] = self.mesh
-
-	if #meshes == 1 then
-		new.selection = {
-			mesh = 1;
-		}
-	end
-
-	
-	if self.mesh.Visible and (not self.mesh.folder) then
-		e:load 'mesh_visualize'
-		self.mesh:create_surfaces(old.root, id, e.CFG.DEFAULT_COLOR)
-	end
-	new.meshes = meshes
-
-	e.reducers.addMessage(e._info(
-		'Added mesh "' .. self.mesh.Name .. '" to the editor'
-	), old, new)
-
-	return new
-end
-
-function e.reducers:loadMeshes(old, new)
-	if old.loaded_meshes then
-		return new
-	end
-	new.loaded_meshes = true
-	
-	local meshes = getMeshes(old.root)
-	new.meshes = meshes
-	
-	if #meshes > 0 then
-		new.selection = {
-			mesh = 1;
-		}
-	end
-	
-	for i, mesh in ipairs(meshes) do
-		if mesh.Visible and (not mesh.folder) then
-			e:load 'mesh_visualize'
-			mesh:create_surfaces(old.root, id, e.CFG.DEFAULT_COLOR)
-		end
-	end
-
-	return new
-end
-
-function e.reducers:save(old, new)
-	if self.existing then
-		self.existing:Destroy()
-	end
-	self.root.Parent = self.parent
-	e.reducers.addSave({
-		save = self.root
-	}, old, new)
-	e.reducers.addMessage(e._info(
-		'Saved mesh "' .. self.root.Name .. '" to the world'
-	), old, new)
-	return new
-end
-
-function e.reducers:newMesh(old, new)
-	new.mode = 'Generate'
-	return new
-end
-
-function e.reducers:loadMesh(old, new)
-	new.mode = 'Load'
-	return new
-end
-
-function e.reducers:rmvMesh(old, new)
-	local meshes = {}
-	for i, mesh in ipairs(old.meshes) do
-		if mesh ~= self.mesh then
-			meshes[#meshes + 1] = mesh
-		end
-	end
-	new.meshes = meshes
-
-	if #meshes == 0 then
-		new.selection = {
-			mesh = nil
-		}
-	elseif old.selection.mesh > #meshes then
-		new.selection = {
-			mesh = #meshes
-		}
-	end
-
-	if self.mesh.Visible and self.mesh.folder then
-		self.mesh.folder:Destroy()
-		self.mesh.folder = nil
-	end
-
-	local name = self.mesh.Name
-	e.reducers.addMessage(e._info(
-		'Removed mesh "' .. name .. '" from the editor'
-	), old, new)
-
-	return new
-end
-
-function e.reducers:selectMesh(old, new)
-	new.selection = {
-		mesh = self.id;
-		type = old.selection.type;
-		object = old.selection.object;
-	}
-	return new
-end
-
-function e.reducers:setProps(old, new)
-	local id = old.selection.mesh
-	if not id then
-		return
-	end
-
-	local mesh = old.meshes[id]
-	local old_vis = mesh.Visible
-
-	for i, v in ipairs(self.values) do
-		mesh[v[1]] = v[2]
-	end
-
-	if mesh.Visible ~= old_vis then
-		if mesh.Visible then
-			e:load 'mesh_visualize'
-			if not mesh.folder then
-				mesh:create_surfaces(old.root, id, e.CFG.DEFAULT_COLOR)
-			end
-		elseif mesh.folder then
-			mesh.folder:Destroy()
-			mesh.folder = nil
-		end
-	end
-
-	return new
-end
-
-function e.reducers:logout(old, new)
-	new.auth.session = nil
-	e.plugin:SetSetting('session', nil)
-	new.mode = 'Welcome'
-	return new
-end
-
-function e.reducers:unlink(old, new)
-	new.auth.UserId = nil
-	new.auth.token = nil
-	new.auth.session = nil
-	e.plugin:SetSetting('user-id', nil)
-	e.plugin:SetSetting('refresh-token', nil)
-	e.plugin:SetSetting('session', nil)
-	new.mode = 'Welcome'
-	return new
-end
-
 return e.connect(function(state, props)
-	local names = {}
-	for i, mesh in ipairs(state.meshes) do
-		names[i] = mesh.Name
-	end
-	local id = state.selection.mesh
 	return {
-		id = id;
-		mesh = id and state.meshes[id];
-		names = names;
-		type = state.selection.type;
-		object = state.selection.object;
+		meshes = state.meshes;
+		selection = state.selection;
+		width = state.size.X;
 	}
 end)(component)

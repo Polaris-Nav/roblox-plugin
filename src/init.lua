@@ -18,8 +18,6 @@
 
 
 
-
-
 local comps = script.components
 
 local lib = script.Parent.lib
@@ -29,8 +27,6 @@ local Otter 		= require(lib.Otter)
 local Roact 		= require(lib.Roact)
 
 local create = Roact.createElement
-
-local reducers = {}
 
 Roact.setGlobalConfig({
     typeChecks = false;
@@ -50,8 +46,6 @@ local api = {
 	Otter = Otter;
 	connect = RoactRodux.connect;
 	StoreProvider = wrap(RoactRodux.StoreProvider);
-
-	reducers = reducers;
 }
 
 
@@ -74,26 +68,11 @@ function api:load(name)
 
 	-- Otherwise it is a component / reducer
 	else
-
-		-- names with a lowercase first character are always reducers
-		local first_char = name:sub(1, 1)
-		if first_char == first_char:lower() then
-			value = function(action)
-				if type(action) ~= 'table' then
-					action = {}
-				end
-				action.type = name
-				return api.store:dispatch(action)
-			end
-
-		-- it may be a defined or atomic component
+		module = comps:FindFirstChild(name)
+		if module then
+			value = wrap(require(module))
 		else
-			module = comps:FindFirstChild(name)
-			if module then
-				value = wrap(require(module))
-			else
-				value = wrap(name)
-			end
+			value = wrap(name)
 		end
 
 	end
@@ -105,88 +84,66 @@ end
 
 
 local is_reducer = false
-local state, new
-function api.rootReducer(cur_state, action)
-	-- print('Action = ', action, 'State = ', state)
-	local r = reducers[action.type]
-	if r then
-		new = {}
-		for k, v in next, cur_state do
-	        new[k] = v
-	    end
-	    is_reducer = true
-	    state = cur_state
-		new = r(action, cur_state, new)
-		is_reducer = false
-		return new
+function api.dispatch(action)
+
+	if is_reducer then
+		return task.spawn(api.store.dispatch, api.store, action)
 	else
-		return cur_state
+		is_reducer = true
+		api.store:dispatch(action)
+		is_reducer = false
 	end
 end
 
-function api._info(text)
-	return {
-		delay = 2.5;
-		message = {
-			type = 'info';
-			Text = text;
-		}
-	}
+api.go = setmetatable({}, {
+	__index = function(self, name)
+		local action = api:load(name)
+		local v = function(...)
+			api.dispatch(action(...))
+		end
+		self[name] = v
+		return v
+	end
+})
+
+local log = api.go.messages_add
+
+
+function api.bind(f, state)
+	return function(...)
+		return f(state, ...)
+	end
 end
-
-function api._warn(text)
-	return {
-		delay = 5;
-		message = {
-			type = 'warning';
-			Text = text;
-		}
-	}
-end
-
-function api._error(text)
-	return api.addMessage {
-		delay = 5;
-		message = {
-			type = 'error';
-			Text = text;
-		}
-	}
-end
-
-
 
 function api.info(text)
 	print(text)
 
-	if is_reducer then
-		return api.reducers.addMessage(api._info(text), state, new)
-	else
-		return api.addMessage(api._info(text))
-	end
+	return log('info', text)
 
 end
 
 function api.warn(text)
 	warn(text)
 
-	if is_reducer then
-		return api.reducers.addMessage(api._warn(text), state, new)
-	else
-		return api.addMessage(api._warn(text))
-	end
+	return log('warning', text)
 
 end
 
 function api.error(text)
 	warn(text)
 
-	if is_reducer then
-		return api.reducers.addMessage(api._error(text), state, new)
-	else
-		return api.addMessage(api._error(text))
-	end
+	return log('error', text)
 
 end
 
-return setmetatable(api, {__index = api.load})
+_G.PolarisNav = setmetatable(api, {__index = api.load})
+
+
+local cacts = {}
+api.context_actions = cacts
+for i, module in ipairs(script.context_actions:GetChildren()) do
+	cacts[module.Name] = require(module)
+end
+
+
+return api

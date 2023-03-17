@@ -15,18 +15,19 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local e = require(script.Parent)
+local e = _G.PolarisNav
 
 local function component(props)
+	local data = props.data
 	local rows = {}
-	for i, data in ipairs(props.rows) do
+	for i, row in ipairs(props.rows) do
 		rows[i] = e.Row {
 			i = i;
-			name = data[1];
-			hint = data[2];
-			units = data[3];
-			select = props.select;
-			onChanged = props.onChanged;
+			name = row[1];
+			hint = row[2];
+			units = row[3];
+			path = row[4];
+			data = data;
 		};
 	end
 	return e.Section({

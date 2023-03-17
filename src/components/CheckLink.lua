@@ -15,7 +15,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local e = require(script.Parent)
+local e = _G.PolarisNav
 
 local component = e.Roact.PureComponent:extend(script.Name)
 
@@ -45,35 +45,6 @@ function component:render()
 			};
 		})
 	})
-end
-
-function e.reducers:attempt_link(old, new)
-	new.mode = 'CheckLink'
-	return new
-end
-
-function e.reducers:link_success(old, new)
-	new.auth.token = self.token
-	new.auth.session = self.session
-	new.auth.Code = nil
-	e.plugin:SetSetting('refresh-token', self.token)
-	e.plugin:SetSetting('session', self.session)
-	e.plugin:SetSetting('user-id', self.id)
-	return e.reducers.authorized(self, old, new)
-end
-
-function e.reducers:authorized(old, new)
-	if self.session then
-		new.auth.session = self.session
-		e.plugin:SetSetting('session', self.session)
-	end
-	new = e.reducers.loadMeshes({}, old, new)
-	if #new.meshes == 0 then
-		new.mode = 'Generate'
-	else
-		new.mode = 'Edit'
-	end
-	return new
 end
 
 return component

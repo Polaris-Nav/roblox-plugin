@@ -22,15 +22,15 @@ local mode = use_dev and 'dev' or use_test and 'test' or 'api'
 local url = use_local and 'http://192.168.1.158' or ('https://' .. mode .. '.Polaris-Nav.com')
 
 return {
-	DEFAULT_COLOR = Color3.new(0.4, 0.8, 0.4);
+	DEFAULT_COLOR = Color3.new(0.6, 1, 0.6);
 	DEFAULT_TRANS = 0.5;
 
-	SELECTED_COLOR = Color3.new(0.8, 0.4, 0.4);
+	SELECTED_COLOR = Color3.new(1, 0.6, 0.6);
 	SELECTED_TRANS = 0;
 
-	HOVERED_COLOR = Color3.new(0.4, 0.4, 0.8);
+	HOVERED_COLOR = Color3.new(0.6, 0.6, 1);
 
-	DEFAULT_CONN_COLOR = Color3.new(0.4, 0.4, 0.8);
+	DEFAULT_CONN_COLOR = Color3.new(0.6, 0.6, 1);
 
 	DIST_SAME_VERT = 0.01;
 

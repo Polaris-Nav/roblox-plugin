@@ -17,9 +17,7 @@
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-
-local e = require(script.Parent)
-
+local e = _G.PolarisNav
 
 
 
@@ -79,6 +77,7 @@ function Point.new(v3, ptype)
 	return setmetatable({
 		v3 = v3;
 		id = nil;
+		mesh = nil;
 		surfaces = {};
 		lines_by_p = {};
 		lines_by_s = {};
@@ -109,6 +108,10 @@ function Point:remove()
 			s:update()
 		end
 	end
+end
+
+function Point:get_meshes()
+
 end
 
 local function insert(t, k, v)

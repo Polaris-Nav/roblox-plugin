@@ -15,7 +15,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local e = require(script.Parent)
+local e = _G.PolarisNav
 
 local component = e.Roact.Component:extend(script.Name)
 
@@ -102,14 +102,20 @@ function component:render()
 						Text = 'Cancel';
 						Size = UDim2.new(0, 100, 0, 27);
 						[e.Roact.Event.Activated] = function()
-							e.cancel {}
+							e.go.confirm_hide()
+							if self.props.onCancel then
+								self.props.onCancel()
+							end
 						end
 					};
 					e.TButton {
 						Text = 'Okay';
 						Size = UDim2.new(0, 100, 0, 27);
 						[e.Roact.Event.Activated] = function()
-							e.confirm {}
+							e.go.confirm_hide()
+							if self.props.onConfirm then
+								self.props.onConfirm()
+							end
 						end
 					};
 					e.UIListLayout {
@@ -127,42 +133,6 @@ function component:render()
 			};
 		});
 	})
-end
-
-local function on(name, old, new)
-	local action = old.confirm and old.confirm[name]
-	if action then
-		return e.reducers[action.type](action, old, new)
-	else
-		return new
-	end
-end
-
-function e.reducers.requireConfirm(action, old, new)
-	new.confirm = {
-		text = action.text;
-		onConfirm = action.onConfirm;
-		show = true;
-	}
-	return on('onCancel', old, new)
-end
-
-function e.reducers.confirm(action, old, new)
-	new.confirm = {
-		text = old.confirm.text;
-		onConfirm = old.confirm.onConfirm;
-		show = false;
-	}
-	return on('onConfirm', old, new)
-end
-
-function e.reducers.cancel(action, old, new)
-	new.confirm = {
-		text = old.confirm.text;
-		onConfirm = old.confirm.onConfirm;
-		show = false;
-	}
-	return on('onCancel', old, new)
 end
 
 return e.connect(function(state, props)

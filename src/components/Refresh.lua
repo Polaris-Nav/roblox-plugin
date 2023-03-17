@@ -15,7 +15,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local e = require(script.Parent)
+local e = _G.PolarisNav
 
 local component = e.Roact.PureComponent:extend(script.Name)
 
@@ -48,12 +48,10 @@ function component:render()
 						Text = 'Skip';
 						Size = UDim2.new(0, 100, 1, 0);
 						[e.Roact.Event.Activated] = function(obj, input, clicks)
-							e.requireConfirm {
-								text = 'If you do not login, you will not be able to automatically generate a mesh. Instead, you will have to manually create your mesh.';
-								onConfirm = {
-									type = 'authorized';
-								};
-							}
+							e.go.confirm_show(
+								'If you do not login, you will not be able to automatically generate a mesh. Instead, you will have to manually create your mesh.',
+								e.op.authorized
+							)
 						end;
 					};
 				});
@@ -68,28 +66,6 @@ function component:render()
 			};
 		})
 	})
-end
-
-function e.reducers:set_session(old, new)
-	new.auth.session = self.session
-	return new
-end
-
-function e.reducers:refresh_session(old, new)
-	new.mode = 'Refresh'
-	e.promise {
-		id = old.auth.UserId;
-		token = old.auth.token;
-		session = old.auth.session;
-	}
-	:Then(e.http.refresh)
-	:Then(function(self, session)
-		self.session = session
-	end)
-	:Then(e.authorized)
-	:Else(e.login)
-	:ContinueAsync()
-	return new
 end
 
 return component

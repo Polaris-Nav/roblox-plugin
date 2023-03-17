@@ -15,7 +15,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local e = require(script.Parent)
+local e = _G.PolarisNav
 
 local component = e.Roact.PureComponent:extend(script.Name)
 
@@ -50,23 +50,24 @@ function component:render()
 				Size = UDim2.new(0, 100, 0, 40);
 				AnchorPoint = Vector2.new(0.5, 0);
 				[e.Roact.Event.Activated] = function(rbx)
-					return e.begin {}
+					if self.props.has_token and self.props.has_id then
+						if self.props.has_session then
+							return e.op.refresh()
+						else
+							return e.op.login()
+						end
+					end
+					e.go.mode_set 'BeginLink'
 				end
 			};
 		});
 	})
 end
 
-function e.reducers.begin(action, old, new)
-	if old.auth.token and old.auth.UserId then
-		if old.auth.session then
-			return e.reducers.refresh_session(action, old, new)
-		else
-			return e.reducers.login(action, old, new)
-		end
-	end
-	new.mode = 'BeginLink'
-	return new
-end
-
-return component
+return e.connect(function(state, props)
+	return {
+		has_token = state.auth.token and true or false;
+		has_session = state.auth.session and true or false;
+		has_id = state.auth.UserId and true or false;
+	}
+end)(component)

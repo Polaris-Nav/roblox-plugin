@@ -15,7 +15,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local e = require(script.Parent)
+local e = _G.PolarisNav
 
 local Selection = game:GetService 'Selection'
 
@@ -146,20 +146,9 @@ local function deselect(include, without)
 	Selection:Remove(objs)
 end
 
-local function selectInclude(state, props, fields)
-	local result = {}
-	for i, key in ipairs(fields) do
-		result[key] = state.include[key]
-	end
-	return result
-end
-
-local function selectFilter(state, props, fields)
-	local result = {}
-	for i, key in ipairs(fields) do
-		result[key] = state.filter[key]
-	end
-	return result
+function component:init(props)
+	self.filter = {};
+	self.include = {};
 end
 
 function component:render()
@@ -177,9 +166,7 @@ function component:render()
 				e.TButton {
 					Text = 'Cancel';
 					Size = UDim2.new(0, 100, 0, 30);
-					[e.Roact.Event.Activated] = function()
-						e.cancelGeneration {}
-					end;
+					[e.Roact.Event.Activated] = e.bind(e.go.mode_set, 'Edit')
 				};
 
 				e.MainTButton {
@@ -188,9 +175,8 @@ function component:render()
 					[e.Roact.Event.Activated] = function()
 						local objs = Selection:Get()
 						apply_default(objs)
-						e.showGenParams {
-							objects = condense(objs);
-						}
+						e.go.mode_set 'Generate_Params'
+						e.go.objects_set(condense(objs));
 						Selection:Set {}
 					end;
 				};
@@ -215,8 +201,7 @@ function component:render()
 
 		e.Rows {
 			Name = 'All with';
-			select = selectInclude;
-			onChanged = e.setInclude;
+			data = self.include;
 			rows = {
 				{'Class', 'BasePart'};
 				{'Name', 'Mesh'};
@@ -226,8 +211,7 @@ function component:render()
 
 		e.Rows {
 			Name = 'Without any';
-			select = selectFilter;
-			onChanged = e.setFilter;
+			data = self.filter;
 			rows = {
 				{'Humanoids'};
 				{'Tools'};
@@ -241,14 +225,14 @@ function component:render()
 				Text = 'Deselect';
 				Size = UDim2.new(0, 100, 0, 30);
 				[e.Roact.Event.Activated] = function(obj, input, clicks)
-					deselect(self.props.include, self.props.filter)
+					deselect(self.include, self.filter)
 				end;
 			};
 			e.TButton {
 				Text = 'Select';
 				Size = UDim2.new(0, 100, 0, 30);
 				[e.Roact.Event.Activated] = function(obj, input, clicks)
-					select(self.props.include, self.props.filter)
+					select(self.include, self.filter)
 				end;
 			};
 
@@ -265,44 +249,4 @@ function component:render()
 	})
 end
 
-function e.reducers.cancelGeneration(action, old, new)
-	new.mode = 'Edit'
-	return new
-end
-
-function e.reducers.showGenParams(action, old, new)
-	new.mode = 'Generate_Params'
-	new.generation_objects = action.objects
-	return new
-end
-
-function e.reducers:setInclude(old, new)
-	local t = {}
-	for k, v in next, old.include do
-		t[k] = v
-	end
-	for i, v in ipairs(self.values) do
-		t[v[1]] = v[2]
-	end
-	new.include = t
-	return new
-end
-
-function e.reducers:setFilter(old, new)
-	local t = {}
-	for k, v in next, old.filter do
-		t[k] = v
-	end
-	for i, v in ipairs(self.values) do
-		t[v[1]] = v[2]
-	end
-	new.filter = t
-	return new
-end
-
-return e.connect(function(state, props)
-	return {
-		include = state.include;
-		filter = state.filter;
-	}
-end)(component)
+return component

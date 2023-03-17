@@ -15,7 +15,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local e = require(script.Parent.Parent)
+local e = _G.PolarisNav
 
 local KC = Enum.KeyCode
 
@@ -24,9 +24,11 @@ local PlaneSelector = {
 	shortcut = {KC.LeftShift, KC.Three};
 }
 
+local Surface = e.Surface
+
 function PlaneSelector:get(target, pos)
 	local mesh, surface = self.util.find(target)
-	return surface
+	return {surface}
 end
 
 function PlaneSelector:unhover()
@@ -34,79 +36,71 @@ function PlaneSelector:unhover()
 		return
 	end
 
-	if self.hovered ~= self.selected then
-		self.hovered:set_props {
-			Color = e.CFG.DEFAULT_COLOR
-		}
-	end
+	self.hovered.lines:Destroy()
+	self.hovered.lines = nil
 	self.hovered = nil
 end
 
 function PlaneSelector:hover(surface)
-	if self.hovered == surface or self.selected == surface then
+	if self.hovered == surface then
 		return
 	end
 	self.fire 'unhover'
 
 	self.hovered = surface
-	self.hovered:set_props {
-		Color = e.CFG.HOVERED_COLOR
-	}
+	surface:create_outline(self.root, e.CFG.HOVERED_COLOR)
 end
 
-function PlaneSelector:deselect()
-	if not self.selected then
-		return
+local function deselect(surface)
+	if surface.MT == Surface.MT then
+		surface:set_props {
+			Color = e.CFG.DEFAULT_COLOR;
+			Transparency = e.CFG.DEFAULT_TRANS;
+		}
+	end
+end
+function PlaneSelector:deselect(surface)
+	if self.hovered == surface then
+		self.fire 'unhover'
+		self.fire('hover', surface)
 	end
 
-	self.selected:set_props {
-		Color = e.CFG.DEFAULT_COLOR;
-		Transparency = e.CFG.DEFAULT_TRANS;
-	}
+	if surface then
+		deselect(surface)
+	else
+		for surface in next, e.store:getState().selection do
+			deselect(surface)
+		end
+	end
 
 	local cons = self.root:FindFirstChild 'Connections'
 	if cons then
 		cons:Destroy()
 	end
-
-	local surface = self.selected
-	self.selected = nil
-	if self.hovered == surface then
-		self.fire 'unhover'
-		hover(surface)
-	end
 end
 
 function PlaneSelector:select(surface)
-	if self.selected then
-		if self.selected == surface then
-			return
-		end
-		self.fire 'deselect'
-	end
-
-	self.selected = surface
-	self.selected:set_props {
+	surface:set_props {
 		Color = e.CFG.SELECTED_COLOR;
 		Transparency = e.CFG.SELECTED_TRANS;
 	}
 
 	local cons = Instance.new 'Folder'
 	cons.Name = 'Connections'
-	self.selected:create_connections(cons, e.CFG.DEFAULT_CONN_COLOR)
+	surface:create_connections(cons, e.CFG.DEFAULT_CONN_COLOR)
 	cons.Parent = self.root
 end
 
 function PlaneSelector:start_drag(part, pos)
-	self.is_dragging = self.selected and part:IsDescendantOf(self.selected.surface)
+	self.is_dragging = true
 	if not self.is_dragging then
 		return
 	end
-	self.mouse.TargetFilter = self.root
+	self.raycast_params.FilterDescendantsInstances = {self.root}
 end
 
 function PlaneSelector:stop_drag()
-	self.mouse.TargetFilter = nil
+	self.raycast_params.FilterDescendantsInstances = {}
 end
 
 return PlaneSelector

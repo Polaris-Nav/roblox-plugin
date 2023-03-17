@@ -15,12 +15,17 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local e = require(script.Parent)
+local e = _G.PolarisNav
 
 local function component(props)
 	local name = props.name
 	local hint = props.hint
-	local v = props[name]
+	local v
+	if props.path then
+		v = props.value
+	else
+		v = props.data[name]
+	end
 
 	if v == nil then
 		if hint ~= nil then
@@ -56,13 +61,21 @@ local function component(props)
 			Size = UDim2.new(0.5, 0, 1, 0);
 			BorderSizePixel = 1;
 		}, {
-			e.Value(props);
+			props.path and e.ConnectedValue(props) or e.Value(props);
 		});
 	});
 end
 
 return e.connect(function(state, props)
-	local r = props.select(state, props, {props.name})
-	r.colors = state.colors
-	return r
+	local cur
+	if props.path then
+		cur = state
+		for i, key in ipairs(props.path) do
+			cur = cur[key]
+		end
+	end
+	return {
+		colors = state.colors;
+		value = cur;
+	}
 end)(component)

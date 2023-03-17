@@ -15,7 +15,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local e = require(script.Parent)
+local e = _G.PolarisNav
 
 local component = e.Roact.PureComponent:extend(script.Name)
 
@@ -45,51 +45,6 @@ function component:render()
 			};
 		})
 	})
-end
-
-function e.reducers:login(old, new)
-	print 'login reducer'
-	local attempts = old.auth.attempts + 1
-	if attempts > 3 then
-		new.auth.attempts = 0
-		new.mode = 'BeginLink'
-		new.auth.UserId = nil
-		new.auth.session = nil
-		new.auth.token = nil
-		task.spawn(e.info, 'Unable to login. You must relink your account.')
-		return new
-	end
-
-	new.mode = 'Login'
-	new.auth.attempts = attempts
-
-	e.promise {
-		id = old.auth.UserId;
-		token = old.auth.token;
-	}
-	:Then(e.http.get_challenge)
-	:Then(function(self, challenge)
-		self.challenge = challenge
-		self.solution = e.NanoPoW.calculate(self.challenge)
-	end)
-	:Then(e.http.login)
-	:Then(function(self, session)
-		self.session = session
-	end)
-	:Then(e.authorized)
-	:Else(function()
-		e.info 'Login failed. Trying again in 3 seconds.'
-		task.wait(3)
-	end)
-	:Else(e.login)
-	:ContinueAsync()
-
-	return new
-end
-
-function e.reducers:login_success(old, new)
-	new.auth.attempts = 0
-	return e.reducers.authorized(self, old, new)
 end
 
 return component

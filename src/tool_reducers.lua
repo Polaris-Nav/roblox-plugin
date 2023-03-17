@@ -15,31 +15,8 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local e = require(script.Parent)
+local e = _G.PolarisNav
 
-function e.reducers:selectPoint(old, new)
-	new.selection = {
-		mesh = self.mesh;
-		type = 'point';
-		object = self.point;
-	}
-	return new
-end
 
-function e.reducers:deletePoint(old, new)
-	local s = old.selection
-	s.object:remove()
-	s.mesh:rmv_point(s.object)
-	return e.reducers.selectNone(nil, old, new)
-end
-
-function e.reducers:selectNone(old, new)
-	new.selection = {
-		mesh = old.selection.mesh;
-		type = nil;
-		object = nil;
-	}
-	return new
-end
 
 return true

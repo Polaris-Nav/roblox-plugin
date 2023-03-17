@@ -15,7 +15,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local e = require(script.Parent)
+local e = _G.PolarisNav
 
 local CS = game:GetService 'CollectionService'
 
@@ -30,10 +30,8 @@ function component:render()
 			Size = UDim2.new(1, 0, 0, 27);
 			Text = save.Name;
 			[e.Roact.Event.Activated] = function(obj)
-				e.returnToEdit {};
-				return e.addMesh {
-					mesh = e.Mesh.load_dir(save);
-				}
+				e.go.mode_set 'Edit'
+				return e.go.meshes_add(e.Mesh.load_dir(save))
 			end;
 		}
 	end
@@ -65,7 +63,7 @@ function component:render()
 				Text = 'Cancel';
 				Size = UDim2.new(0, 100, 0, 30);
 				[e.Roact.Event.Activated] = function()
-					e.returnToEdit {}
+					e.go.mode_set 'Edit'
 				end;
 			};
 
@@ -73,7 +71,7 @@ function component:render()
 				Text = 'Refresh';
 				Size = UDim2.new(0, 100, 0, 30);
 				[e.Roact.Event.Activated] = function()
-					e.refreshSaves {}
+					e.go.saves_refresh()
 				end;
 			};
 
@@ -88,52 +86,6 @@ function component:render()
 			Padding = UDim.new(0, 20);
 		};
 	})
-end
-
-function e.reducers:returnToEdit(old, new)
-	new.mode = 'Edit'
-	return new
-end
-
-function e.reducers:refreshSaves(old, new)
-	for i, con in ipairs(old.saves_con) do
-		con:Disconnect()
-	end
-	new.saves = CS:GetTagged 'Polaris-Save'
-	new.saves_con = {}
-	for i, save in ipairs(new.saves) do
-		new.saves_con[i] = save.Destroying:Connect(function()
-			task.defer(e.removeSave, {
-				save = save;
-			})
-		end)
-	end
-	return new
-end
-function e.reducers:addSave(old, new)
-	new.saves = {}
-	for i, save in ipairs(old.saves) do
-		new.saves[i] = save
-	end
-	local id = #new.saves + 1
-	new.saves[id] = self.save
-	new.saves_con[id] = self.save.Destroying:Connect(function()
-		task.defer(e.removeSave, {
-			save = self.save;
-		})
-	end)
-	return new
-end
-function e.reducers:removeSave(old, new)
-	new.saves = {}
-	for i, save in ipairs(old.saves) do
-		if save ~= self.save then
-			local id = #new.saves + 1
-			new.saves[id] = save
-			new.saves_con[id] = old.saves_con[i]
-		end
-	end
-	return new
 end
 
 return e.connect(function(state, props)

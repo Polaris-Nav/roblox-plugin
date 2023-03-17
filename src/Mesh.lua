@@ -17,8 +17,7 @@
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-
-local e = require(script.Parent)
+local e = _G.PolarisNav
 
 
 local Point = e.Point
@@ -27,6 +26,7 @@ local Mesh = {}
 Mesh.MT = { __index = Mesh }
 function Mesh.new()
 	return setmetatable({
+		id = nil;
 		points = {};
 		reflexes = {};
 		surfaces = {};
@@ -51,6 +51,7 @@ function Mesh:add_point(point)
 	local id = #self.points + 1
 	self.points[id] = point
 	point.id = id
+	point.mesh = self
 	if point.ptype >= Point.REFLEX then
 		self.reflexes[point] = true
 	end
@@ -60,12 +61,14 @@ function Mesh:add_surface(surface)
 	local id = #self.surfaces + 1
 	self.surfaces[id] = surface
 	surface.id = id
+	surface.mesh = self
 end
 
 function Mesh:add_barrier(surface)
 	local id = #self.barriers + 1
 	self.barriers[id] = surface
 	surface.id = id
+	surface.mesh = self
 	surface.is_barrier = true
 end
 
@@ -113,8 +116,19 @@ function Mesh:remove(surface)
 
 	for i, p in ipairs(surface) do
 		p.surfaces[surface] = nil
-		if not next(p.surfaces) then
+		local is_unused = true
+		local is_blocked = true
+		for surface in next, p.surfaces do
+			is_unused = false
+			if not surface.is_barrier then
+				is_blocked = false
+				break
+			end
+		end
+		if is_unused then
 			self:rmv_point(p)
+		elseif is_blocked then
+			p.ptype = Point.BLOCKED
 		end
 	end
 end

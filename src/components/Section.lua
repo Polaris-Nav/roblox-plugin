@@ -15,13 +15,14 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local e = require(script.Parent)
+local e = _G.PolarisNav
 
 local function component(props)
 	return e.Pane({
-		Name = props.Name;
+	Name = props.Name;
 		Size = UDim2.new(1, 0, 0, 0);
 		AutomaticSize = Enum.AutomaticSize.Y;
+		LayoutOrder = props.LayoutOrder;
 	}, e.util.union_i({
 		e.Header {
 			Text = props.Name;

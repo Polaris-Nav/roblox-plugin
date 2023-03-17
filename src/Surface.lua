@@ -17,20 +17,20 @@
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
+local e = _G.PolarisNav
 
-local e = require(script.Parent)
 local AABB = e.AABB
 
 
 local util = e.util
 
-local max_rejection_per_stud = 1e-7
+local max_rejection_per_stud = 1e-6
 
 local min_normal = 1 - math.sin(math.rad(89))
 
 local h_delta = 1e-3
 
-local mrps_cos = math.cos(max_rejection_per_stud)
+local mrps_cos = math.cos(math.atan(max_rejection_per_stud))
 
 local down = Vector3.new(0, -1, 0)
 local up = Vector3.new(0, 1, 0)
@@ -46,6 +46,7 @@ function Surface.new(pts)
 	if not is_valid then
 		return false
 	end
+	pts.mesh = nil;
 	pts.normal = normal
 	pts.connections = {}
 	pts.c_conns = {}
@@ -62,39 +63,59 @@ end
 function Surface:calc_normal()
 	local n = #self
 	local a = self[n]
-	local b = self[1]
-	local delta = b.v3 - a.v3
+	local b
 
-	local delta_mag = delta.Magnitude
+	local ab_u
+	for i = 1, n - 1 do
+		local b = self[i]
 
-	if delta_mag < util.prec then
-		return false
+		local delta = b.v3 - a.v3
+
+		local delta_mag = delta.Magnitude
+
+		if delta_mag >= util.prec then
+			ab_u = delta / delta_mag
+			break
+		end
 	end
-	local ab_u = delta / delta_mag
-	local best_v = 0
-	local best_cos = 1
-	for i = 1, #self - 1 do
+
+	-- All points are identical within the given util.prec,
+	-- Best normal to use is "up".
+	if not ab_u then
+		return false, Vector3.new(0, 1, 0)
+	end
+
+	local best_ac_u
+	local best_abs_cos = 1
+	for i = 1, n - 1 do
 		local c = self[i]
-		delta = c.v3 - a.v3
 
-		delta_mag = delta.Magnitude
+		local delta = c.v3 - a.v3
 
-		if delta_mag < util.prec then
-			return false
-		end
-		local ac_u = delta / delta_mag
-		local cos_abs = math.abs(ab_u:Dot(ac_u))
-		if cos_abs < best_cos then
-			best_cos = cos_abs
-			best_v = ac_u
+		local delta_mag = delta.Magnitude
+
+		if delta_mag >= util.prec then
+			local ac_u = delta / delta_mag
+			local cos_abs = math.abs(ab_u:Dot(ac_u))
+			if cos_abs <= best_abs_cos then
+				best_abs_cos = cos_abs
+				best_ac_u = ac_u
+			end
 		end
 	end
 
-	if best_cos > mrps_cos or best_cos < -mrps_cos then
-		return false
+	-- All points are on the same line
+	-- Best normal to use is up-ish, or to the side if the line is up
+	if best_abs_cos > mrps_cos then
+		local up = Vector3.new(0, 1, 0)
+		if math.abs(ab_u:Dot(up)) > mrps_cos then
+			return false, Vector3.new(1, 0, 0)
+		else
+			return false, ab_u:Cross(up:Cross(ab_u))
+		end
 	end
 
-	return true, best_v:Cross(ab_u)
+	return true, best_ac_u:Cross(ab_u)
 end
 
 function Surface:rmv(id)
@@ -133,9 +154,9 @@ function Surface:is_convex()
 end
 
 function Surface:is_coplanar()
-	local dot = self[1].v3:Dot(self.normal)
-	for i, a in ipairs(self) do
-		if math.abs(a.v3:Dot(self.normal) - dot) > 1e-7 then
+	local a = self[1]
+	for i, b in ipairs(self) do
+		if math.abs((b.v3 - a.v3):Dot(self.normal)) > 1e-5 then
 			return false
 		end
 	end

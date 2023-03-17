@@ -15,7 +15,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local e = require(script.Parent)
+local e = _G.PolarisNav
 
 local http = game:GetService 'HttpService'
 
@@ -69,7 +69,7 @@ function Request:default_throw(args)
 				return self.predecessor:RepeatAsync()
 			end)
 		else
-			e.warn(ERR_HTTP:format(
+			warn(ERR_HTTP:format(
 				r.StatusCode,
 				r.StatusMessage,
 				r.Body
@@ -154,6 +154,7 @@ local function req(args)
 
 	-- Promise for handling errors / responses
 	req.promise = e.promise(req)
+	:Silent()
 	:Then(Request.exec)
 	:Else(Request.default_throw)
 
@@ -296,19 +297,26 @@ function api:generate()
 		end
 
 		local nonconvex = {}
+		local noncoplanar = {}
 		for i, surface in ipairs(save.mesh.surfaces) do
 			if not surface:is_convex() then
 				nonconvex[#nonconvex + 1] = i
+			end
+			if not surface:is_coplanar() then
+				noncoplanar[#noncoplanar + 1] = i
 			end
 		end
 		if #nonconvex > 0 then
 			e.warn('Received mesh contains non-convex surfaces. Left unfixed, these will cause errors while finding the ground, and some connections to not exist and pathfinding to silently fail. These surfaces will appear red until fixed. The nonconvex surfaces\' IDs are: ' .. table.concat(nonconvex, ', '))
 		end
+		if #nonconvex > 0 then
+			e.warn('Received mesh contains non-coplanar surfaces. Left unfixed, these will cause errors, and some connections to not exist and pathfinding to silently fail. These surfaces will appear red until fixed. The nonconvex surfaces\' IDs are: ' .. table.concat(nonconvex, ', '))
+		end
 
 		save.mesh.Visible = true
-		e.addMesh {
-			mesh = save.mesh;
-		}
+		e.go.meshes_add(save.mesh)
+		e:load 'mesh_visualize'
+		save.mesh:create_surfaces()
 	end)
 end
 

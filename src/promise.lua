@@ -25,6 +25,7 @@
 --   - return another promise which is automatically executed before continuing
 --     - injects callbacks to return execution back to the parent promise and escalate errors
 --   - make other calls and just never return
+local e = _G.PolarisNav
 
 local OP = {
 	NONE = {};
@@ -94,6 +95,11 @@ function Static:OnError()
 	return on_error
 end
 
+function Static:Silent()
+	rawset(self, 'silent', true)
+	return self
+end
+
 function Static:_Dispatch(op, args, msg)
 	if msg ~= nil then
 		rawset(self, 'msg', msg)
@@ -121,12 +127,15 @@ function Static:_Dispatch(op, args, msg)
 
 		if op == OP.THROW then
 			local on_error = rawget(self, 'on_error')
+			if not on_error then
+				print 'An unhandled error occured.'
+			end
+			if not rawget(self, 'silent') and type(msg) == 'string' then
+				warn(msg)
+			end
 			if on_error then
 				return on_error:_Dispatch(OP.CONTINUE, args, msg)
 			end
-
-			print 'An unhandled error occured.'
-			return type(msg) == 'string' and warn(msg) or nil
 		end
 
 		local i
@@ -137,24 +146,36 @@ function Static:_Dispatch(op, args, msg)
 			self.i = i + 1
 		end
 
-		local callback = rawget(self, i)
-		if callback then
-			self.is_running = true
-			local value
-			success, value = xpcall(function()
-				return callback(self, args)
-			end, get_trace)
-			self.is_running = false
-			if not success then
-				self.after = OP.THROW
-				rawset(self, 'after_args', args)
-				msg = value
-				rawset(self, 'msg', msg)
-			elseif type(value) == 'table' and getmetatable(value) == Promise then
-				rawset(value, 'caller', self)
-				return value:_Dispatch(OP.CONTINUE)
+		-- Get the next action
+		local action = rawget(self, i)
+		if action then
+			-- There is an action
+			if type(action) == 'function' then
+				-- The action can be called
+				self.is_running = true
+				local value
+				success, value = xpcall(function()
+					return action(self, args)
+				end, get_trace)
+				self.is_running = false
+				if not success then
+					self.after = OP.THROW
+					rawset(self, 'after_args', args)
+					msg = value
+					rawset(self, 'msg', msg)
+				elseif type(value) == 'table' and getmetatable(value) == Promise then
+					rawset(value, 'caller', self)
+					return value:_Dispatch(OP.CONTINUE)
+				end
+			else
+				-- The action needs to be dispatched
+				if action.type == nil then
+					error 'Table is not an action to be dispatched'
+				end
+				e.dispatch(action)
 			end
 		else
+			-- There are no more actions
 			self.i = 1
 			self.after = OP.NONE
 			if self.predecessor then
@@ -174,48 +195,48 @@ function Static:_Dispatch(op, args, msg)
 	end
 end
 
-function Static:ReturnAsync(args)
-	return self.caller:ResumeAsync(args)
+function Static:ReturnAsync(...)
+	return self.caller:ResumeAsync(...)
 end
 
 function Static:EscalateAsync(args)
 	return self.predecessor.caller:ThrowAsync(args, rawget(self, 'msg'))
 end
 
-function Static:Continue(args)
-	return self:_Dispatch(OP.CONTINUE, args)
+function Static:Continue(...)
+	return self:_Dispatch(OP.CONTINUE, ...)
 end
 
 function Static:Yield()
 	self.after = OP.NONE
 end
 
-function Static:ContinueAsync(args)
-	return task.spawn(self._Dispatch, self, OP.CONTINUE, args)
+function Static:ContinueAsync(...)
+	return task.spawn(self._Dispatch, self, OP.CONTINUE, ...)
 end
 
-function Static:Throw(args, msg)
-	return self:_Dispatch(OP.THROW, args, msg)
+function Static:Throw(...)
+	return self:_Dispatch(OP.THROW, ...)
 end
 
-function Static:ThrowAsync(args, msg)
-	return task.spawn(self._Dispatch, self, OP.THROW, args, msg)
+function Static:ThrowAsync(...)
+	return task.spawn(self._Dispatch, self, OP.THROW, ...)
 end
 
-function Static:Repeat(args)
-	return self:_Dispatch(OP.REPEAT, args)
+function Static:Repeat(...)
+	return self:_Dispatch(OP.REPEAT, ...)
 end
 
-function Static:RepeatAsync(args)
-	return task.spawn(self._Dispatch, self, OP.REPEAT, args)
+function Static:RepeatAsync(...)
+	return task.spawn(self._Dispatch, self, OP.REPEAT, ...)
 end
 
-function Static:Resume(args)
-	return self:_Dispatch(OP.RESUME, args)
+function Static:Resume(...)
+	return self:_Dispatch(OP.RESUME, ...)
 end
 
-function Static:ResumeAsync(args)
-	return task.spawn(self._Dispatch, self, OP.RESUME, args)
+function Static:ResumeAsync(...)
+	return task.spawn(self._Dispatch, self, OP.RESUME, ...)
 end
 
 function Static:Reset()
@@ -227,9 +248,9 @@ function Static:Stop()
 	self:Reset()
 end
 
-function Static:RetryAsync(args)
+function Static:RetryAsync(...)
 	self.predecessor:Reset()
-	self.predecessor:ContinueAsync(args)
+	self.predecessor:ContinueAsync(...)
 end
 
 return Promise.__ctor

@@ -15,7 +15,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local e = require(script.Parent)
+local e = _G.PolarisNav
 
 local component = e.Roact.Component:extend(script.Name)
 
@@ -24,7 +24,7 @@ function component:init(props)
 	self.onFocused = e.util.bind(self.onFocused, self)
 	self.onActivated = e.util.bind(self.onActivated, self)
 
-	local initial = props[props.name]
+	local initial = props.data[props.name]
 	if initial == nil then
 		initial = props.hint
 	end
@@ -35,11 +35,7 @@ function component:init(props)
 end
 
 function component:set(value)
-	return self.props.onChanged {
-		values = {
-			{self.props.name, value};
-		}
-	}
+	self.props.data[self.props.name] = value
 end
 
 function component:onActivated(obj)
@@ -99,8 +95,8 @@ end
 -- If the current value or hint get updated, update the state
 function component:willUpdate(newProps, newState)
 	-- If the current value is updated and should be shown
-	local old = self.props[self.props.name]
-	local new = newProps[newProps.name]
+	local old = self.props.data[self.props.name]
+	local new = newProps.data[newProps.name]
 	if new ~= nil then
 		if new ~= old then
 			newState.value = new
@@ -122,7 +118,7 @@ function component:render()
 
 	local clear = false
 	local color = colors.MainText
-	if not self.state.focused and self.props[name] == nil then
+	if not self.state.focused and self.props.data[name] == nil then
 		clear = true
 		color = colors.DimmedText
 	end

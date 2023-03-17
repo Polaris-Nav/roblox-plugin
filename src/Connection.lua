@@ -17,10 +17,7 @@
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-
-local e = require(script.Parent)
-
-
+local e = _G.PolarisNav
 local util = e.util
 
 local Connection = {}

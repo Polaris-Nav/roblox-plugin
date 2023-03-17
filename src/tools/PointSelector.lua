@@ -15,7 +15,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local e = require(script.Parent.Parent)
+local e = _G.PolarisNav
 
 local CS = game:GetService 'CollectionService'
 
@@ -26,8 +26,14 @@ local PointSelector = {
 	shortcut = {KC.LeftShift, KC.One};
 }
 
+local Point = e.Point
+
 function PointSelector:get(target, pos)
 	local mesh, surface = self.util.find(target)
+
+	if not pos then
+		return {surface}
+	end
 
 	local min_d2 = math.huge
 	local min_v = nil
@@ -49,7 +55,7 @@ function PointSelector:get(target, pos)
 		end
 	end
 
-	return min_v, mesh, con
+	return {min_v}
 end
 
 function PointSelector:unhover()
@@ -57,7 +63,7 @@ function PointSelector:unhover()
 		return
 	end
 
-	if self.hovered ~= self.selected then
+	if e.store:getState().selection[self.hovered] then
 		self.hovered:destroy()
 		if self.existed_h then
 			self.hovered:create(self.existed_h)
@@ -69,7 +75,7 @@ end
 
 function PointSelector:hover(point, mesh, con)
 	self.fire 'unhover'
-	if self.hovered == point or self.selected == point then
+	if self.hovered == point or e.store:getState().selection[point] then
 		return
 	end
 
@@ -87,67 +93,56 @@ function PointSelector:hover(point, mesh, con)
 	end
 end
 
-
-function PointSelector:deselect()
-	local point = self.selected
-	if not point then
-		return
-	end
-	
-	self.selected = nil
-	if not point.part then
+local function deselect(self, point)
+	if point.MT ~= Point.MT or not point.part then
 		return
 	end
 
 	point:destroy()
-	self.store:dispatch {
-		type = 'selectNone';
-	}
 
-	if self.hovered == point then
-		self.fire 'unhover'
-		self.fire('hover', point)
-	elseif self.existed_s then
+	if self.hovered ~= point and self.existed_s then
 		point:create(self.existed_s)
 		self.existed_s = nil
 	end
 end
 
-function PointSelector:select(point, mesh)
-	if self.selected then
-		if self.selected == point then
-			return
-		end
-		self.fire 'deselect'
+function PointSelector:deselect(point)
+	if self.hovered == point then
+		self.fire 'unhover'
+		self.fire('hover', point)
 	end
 
-	self.selected = point
+	if point then
+		deselect(self, point)
+	else
+		for point in next, e.store:getState().selection do
+			deselect(self, point)
+		end
+	end
+end
+
+function PointSelector:select(point, mesh)
 	if point.part then
 		self.existed_s = point.part.Parent
 	else
 		self.existed_s = nil
 	end
 
-	self.store:dispatch {
-		type = 'selectPoint';
-		mesh = mesh;
-		point = point;
+	e.go.selection_update {
+		[point] = true;
 	}
-	self.selected:set_props {
+	point:set_props {
 		Color = e.CFG.SELECTED_COLOR;
 		Transparency = e.CFG.SELECTED_TRANS;
 	}
 end
 
 function PointSelector:start_drag(target, pos)
-	if not self.selected then
-		return
-	end
 	self.is_dragging = true
 	self.is_snapped = true
 	self.offset = nil
-	self.snap_pos = self.selected.v3
-	self.mouse.TargetFilter = self.root
+	self.snap_pos = pos
+	self.raycast_params.FilterDescendantsInstances = {self.root}
 end
 
 function PointSelector:drag(pos)
@@ -156,17 +151,21 @@ function PointSelector:drag(pos)
 		if v:Dot(v) >= 0.2 then
 			self.is_snapped = false
 			if not self.offset then
-				self.offset = self.selected.v3 - pos
+				self.offset = self.snap_pos - pos
 			end
 		else
 			return
 		end
 	end
-	self.selected:update(pos + self.offset)
+	for p in next, e.store:getState().selection do
+		if p.MT == Point.MT then
+			p:update(pos + self.offset)
+		end
+	end
 end
 
 function PointSelector:stop_drag()
-	self.mouse.TargetFilter = nil
+	self.raycast_params.FilterDescendantsInstances = {}
 end
 
 return PointSelector

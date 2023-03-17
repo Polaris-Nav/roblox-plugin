@@ -15,21 +15,12 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-local e = require(script.Parent)
+local e = _G.PolarisNav
 
 local util = e.util
 local Mesh = e.Mesh
 
-local function selectParams(state, props, fields)
-	local result = {}
-	for i, key in ipairs(fields) do
-		result[key] = state.params[key]
-	end
-	return result
-end
-
 local component = e.Roact.PureComponent:extend(script.Name)
-
 function component:render()
 	return e.Context({
 		Name = script.Name;
@@ -50,14 +41,12 @@ function component:render()
 		
 		e.Rows({
 			Name = 'Properties';
-			select = selectParams;
-			onChanged = e.setParams;
 			rows = {
-				{'Gravity', nil, '(studs/sec²)'};
-				{'JumpPower', nil, '(studs/sec)'};
-				{'WalkSpeed', nil, '(studs/sec)'};
-				{'Radius', nil, '(studs)'};
-				{'Height', nil, '(studs)'};
+				{'Gravity', 	nil, '(studs/sec²)',{'params', 'Gravity'}};
+				{'JumpPower', 	nil, '(studs/sec)', {'params', 'JumpPower'}};
+				{'WalkSpeed', 	nil, '(studs/sec)', {'params', 'WalkSpeed'}};
+				{'Radius', 		nil, '(studs)', 	{'params', 'Radius'}};
+				{'Height', 		nil, '(studs)', 	{'params', 'Height'}};
 			};
 		});
 
@@ -65,9 +54,7 @@ function component:render()
 			e.TButton {
 				Text = 'Cancel';
 				Size = UDim2.new(0, 100, 0, 30);
-				[e.Roact.Event.Activated] = function(obj, input, clicks)
-					e.cancelGeneration {}
-				end;
+				[e.Roact.Event.Activated] = e.bind(e.go.mode_set, 'Edit')
 			};
 
 			e.MainTButton {
@@ -82,7 +69,7 @@ function component:render()
 					}
 					:Then(e.http.generate)
 					:Continue()
-					e.finishGeneration {}
+					e.go.mode_set 'Edit'
 				end;
 			};
 
@@ -99,27 +86,10 @@ function component:render()
 	})
 end
 
-function e.reducers.finishGeneration(action, old, new)
-	new.mode = 'Edit'
-	return new
-end
-
-function e.reducers:setParams(old, new)
-	local t = {}
-	for k, v in next, old.params do
-		t[k] = v
-	end
-	for i, v in ipairs(self.values) do
-		t[v[1]] = v[2]
-	end
-	new.params = t
-	return new
-end
-
 return e.connect(function(state, props)
 	return {
 		session = state.auth.session;
-		parts = state.generation_objects;
+		parts = state.objects;
 		params = state.params;
 	}
 end)(component)
