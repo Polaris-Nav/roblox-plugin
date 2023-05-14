@@ -169,7 +169,7 @@ function component:render()
 		e.Line {
 			e.HeaderBackground({}, {
 				e.HeaderLabel {
-					Text = "Discord";
+					Text = "Discord Server";
 				};
 				e.TButton {
 					Size = UDim2.new(0, 70, 1, -2);
