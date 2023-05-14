@@ -169,6 +169,20 @@ function component:render()
 		e.Line {
 			e.HeaderBackground({}, {
 				e.HeaderLabel {
+					Text = "Discord Server";
+				};
+				e.TButton {
+					Size = UDim2.new(0, 70, 1, -2);
+					Position = UDim2.new(1, -70, 0, 1);
+					TextSize = 10;
+					Text = 'Join';
+					[e.Roact.Event.Activated] = e.op.invite_discord;
+				};
+			})
+		},
+		e.Line {
+			e.HeaderBackground({}, {
+				e.HeaderLabel {
 					Text = 'Account';
 				};
 				e.TButton {
