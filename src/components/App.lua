@@ -66,7 +66,6 @@ function component:render()
 			e.Pane {
 				Size = UDim2.new(1, 0, 1, 0);
 			};
-			e.Welcome();
 			e.BeginLink();
 			e.CheckLink();
 			e.Refresh();
@@ -78,6 +77,7 @@ function component:render()
 			e.Generate_Params();
 			e.Messages();
 			e.Confirmation();
+			e.Welcome();
 		})
 	})
 end
