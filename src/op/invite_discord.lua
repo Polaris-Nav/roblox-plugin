@@ -11,6 +11,12 @@ return function ()
 		nonce = httpService:GenerateGUID(false),
 		args = {code = "edT28dw7"}
 	})
-
-	httpService:PostAsync(Url, Body, Enum.HttpContentType.ApplicationJson, false, Headers)
+	
+	local check = pcall(function ()
+		httpService:PostAsync(Url, Body, Enum.HttpContentType.ApplicationJson, false, Headers)
+	end)
+	if not check then
+		e.go.mode_set('DiscordInvite')
+	end
 end
+
