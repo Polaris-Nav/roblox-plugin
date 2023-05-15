@@ -72,6 +72,7 @@ function component:render()
 			e.Refresh();
 			e.Login();
 			e.Edit();
+			e.DiscordInvite();
 			e.Load();
 			e.Generate();
 			e.Generate_Params();
