@@ -9,7 +9,7 @@ return function ()
 	local Body = httpService:JSONEncode({
 		cmd = 'INVITE_BROWSER',
 		nonce = httpService:GenerateGUID(false),
-		args = {code = "edT28dw7"}
+		args = {code = e.CFG.DISCORD_INVITE}
 	})
 	
 	local check = pcall(function ()
