@@ -56,7 +56,7 @@ function component:render()
                 Position = UDim2.new(1, 0 -70, 0, 24);
                 TextSize = 10;
                 Text = 'Back';
-                [e.Roact.Event.Activated] = e.bind(e.go.mode_set, "Edit");
+                [e.Roact.Event.Activated] = e.bind(e.go.mode_set, e.__state.previous_mode);
             };
         };
 

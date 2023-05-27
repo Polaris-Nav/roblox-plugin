@@ -33,7 +33,7 @@ function component:render()
     local props = self.props
     local title = string.gsub(props.mode, "_", " ")
     local elements = {}
-    if props.mode ~= "Begin_Link" and props.mode ~= "Check_Link" and props.mode ~= "Refresh" and props.mode ~= "Login" and props.mode ~= "Welcome" and props.mode ~= "Settings" then
+    if props.mode ~= "Begin_Link" and props.mode ~= "Check_Link" and props.mode ~= "Refresh" and props.mode ~= "Login" and props.mode ~= "Welcome" then
         elements = {
             e.ImageButton {
             BackgroundTransparency = 1;
