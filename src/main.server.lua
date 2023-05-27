@@ -14,8 +14,14 @@
 --
 -- You should have received a copy of the GNU General Public License
 -- along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+local pl = plugin
+
+local update = require(script.Parent.update)
+update(pl)
+
 local e = require(script.Parent)
-e.plugin = plugin
+e.plugin = pl
 local tree = e.Roact.mount(e.App {}, game)
 plugin.Unloading:Connect(function()
 	e.Roact.unmount(tree)

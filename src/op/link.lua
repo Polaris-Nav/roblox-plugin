@@ -27,7 +27,7 @@ return function(obj, input, clicks)
 	:Then(function(self, challenge)
 		self.challenge = challenge
 	end)
-	:Then(e.mode_set 'CheckLink')
+	:Then(e.mode_set 'Check_Link')
 	:Then(function(self)
 		self.solution = e.NanoPoW.calculate(self.challenge)
 	end)

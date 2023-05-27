@@ -57,7 +57,7 @@ function component:render()
 							return e.op.login()
 						end
 					end
-					e.go.mode_set 'BeginLink'
+					e.go.mode_set 'Begin_Link'
 				end
 			};
 		});

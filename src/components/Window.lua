@@ -30,7 +30,7 @@ function component:init(props)
 			false
 		)
 	)
-	self.win.Title = 'Polaris-Nav'
+	self.win.Title = ' '
 end
 
 function component:render()

@@ -16,7 +16,7 @@ return function ()
 		httpService:PostAsync(Url, Body, Enum.HttpContentType.ApplicationJson, false, Headers)
 	end)
 	if not check then
-		e.go.mode_set('DiscordInvite')
+		e.go.mode_set('Discord_Invite')
 	end
 end
 

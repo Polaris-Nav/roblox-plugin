@@ -35,7 +35,7 @@ local function component(props)
 
 	local ty = type(v)
 	if hint ~= nil and ty ~= type(hint) then
-		error 'value and hint type mismatch'
+		error ('value and hint type mismatch,' .. type(hint) .. ", " .. ty .. ", " .. name)
 	end
 
 	if props.units then

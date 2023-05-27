@@ -20,7 +20,7 @@ local e = _G.PolarisNav
 local component = e.Roact.PureComponent:extend(script.Name)
 function component:render()
 	return e.Context({
-		Name = 'BeginLink'
+		Name = script.Name
 	}, {
 		e.Pane({
 			Size = UDim2.new(1, 0, 0, 0);
