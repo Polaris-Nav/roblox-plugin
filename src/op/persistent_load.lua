@@ -11,7 +11,8 @@ local ls = e.vLua
 return function (key)
     local value : string = p:GetSetting(key)
     if typeof(value) == "string" then
-        if string.sub(value, 1, 1) == "!" then
+        local first_char = string.sub(value, 1, 1)
+        if first_char == "!" then
             local load, err = ls('return ' .. (string.gsub(value, "!", "", 1) or 'nil'))
 
             if err then
