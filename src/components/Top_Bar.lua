@@ -44,7 +44,7 @@ function component:render()
             ImageRectSize = Vector2.new(36, 36);
             ImageRectOffset = Vector2.new(324, 124);
             ImageColor3 = self.props.colors.BrightText;
-            [e.Roact.Event.Activated] = e.bind(checkandrun, self.props);
+            [e.Roact.Event.Activated] = e.bind(checkandrun, self.props.previous_mode);
             };
             e.TLabel({
 		    	Text = title;
