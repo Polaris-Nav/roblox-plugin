@@ -22,12 +22,12 @@ local function checkandrun(props)
        e.go.mode_set("Settings")
     else
         if props.mode == "Settings" then
-            e.go.mode_set(props.old_mode)
+            e.go.mode_set(props.previous_mode)
         end
     end
 end
 
-local component = e.Roact.PureComponent:extend(script.Name)
+local component = e.Roact.Component:extend(script.Name)
 
 function component:render()
     local props = self.props
@@ -45,18 +45,18 @@ function component:render()
             ImageRectOffset = Vector2.new(324, 124);
             ImageColor3 = self.props.colors.BrightText;
             [e.Roact.Event.Activated] = e.bind(checkandrun, self.props);
-        };
-        e.TLabel({
-			Text = title;
-			TextSize = 19;
-			TextColor3 = self.props.colors.BrightText;
-			Size = UDim2.new(0, 0, 1, 0);
-			Position = UDim2.new(0.5, 0, 0.5, 0);
-			AnchorPoint = Vector2.new(0.5, 0.5);
-			BackgroundTransparency = 1;
-			AutomaticSize = Enum.AutomaticSize.X;
-		});
-    }
+            };
+            e.TLabel({
+		    	Text = title;
+		    	TextSize = 19;
+		    	TextColor3 = self.props.colors.BrightText;
+		    	Size = UDim2.new(0, 0, 1, 0);
+		    	Position = UDim2.new(0.5, 0, 0.5, 0);
+		    	AnchorPoint = Vector2.new(0.5, 0.5);
+		    	BackgroundTransparency = 1;
+		    	AutomaticSize = Enum.AutomaticSize.X;
+		    });
+        }
     else
         elements = {
             e.TLabel({
@@ -84,6 +84,6 @@ return e.connect(function(state)
 	return {
 		colors = state.colors,
         mode = state.mode,
-        old_mode = state.previous_mode
+        previous_mode = state.previous_mode
 	}
 end)(component)

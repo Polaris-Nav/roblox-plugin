@@ -12,20 +12,19 @@ local function set_auth(uid, tok, ses, code, att)
 		attempts = att;
 	}
 	local p = e.plugin
-	local authSaveInfo = {
-		["user-id"] = tonumber(uid);
-		["refresh-token"] = tok;
-		["session"] = ses;
-	}
-	save("auth", authSaveInfo)
+	save('auth', {
+		['user-id'] = uid;
+		['refresh-token'] = tok;
+		['session'] = ses;
+	})
 	return auth
 end
 
 return function(action, old, new, nxt)
 	if action.type == '@@INIT' then
-		local savedAuth = load("auth")
+		local savedAuth = load('auth')
 		new.auth = set_auth(
-			savedAuth["user-id"] or nil,
+			savedAuth['user-id'] or nil,
 			savedAuth['refresh-token'] or nil,
 			savedAuth['session'] or nil,
 			nil,

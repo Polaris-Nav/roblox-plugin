@@ -56,7 +56,7 @@ function component:render()
                 Position = UDim2.new(1, 0 -70, 0, 24);
                 TextSize = 10;
                 Text = 'Back';
-                [e.Roact.Event.Activated] = e.bind(e.go.mode_set, e.store.getState().previous_mode);
+                [e.Roact.Event.Activated] = e.bind(e.go.mode_set, self.props.previous_mode);
             };
         };
 
@@ -73,6 +73,7 @@ end
 
 return e.connect(function(state)
     return {
-        colors = state.colors
+        colors = state.colors;
+		previous_mode = state.previous_mode
     }
 end)(component)

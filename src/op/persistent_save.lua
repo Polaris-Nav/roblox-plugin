@@ -3,11 +3,12 @@ local p = e.plugin
 local stringify = e.stringify
 
 return function (key, value)
-    if typeof(value) == "string" then
-        p:SetSetting(key, "#" .. value)
-    elseif typeof(value) == nil then
+    local valtype = typeof(value)
+    if valtype == 'string' then
+        p:SetSetting(key, '#' .. value)
+    elseif valtype == 'nil' or valtype == 'number' or valtype == 'boolean' then
         p:SetSetting(key, value)
     else
-        p:SetSetting(key, "!" .. stringify(value))
+        p:SetSetting(key, '!' .. stringify(value))
     end
 end
