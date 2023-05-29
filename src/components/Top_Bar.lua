@@ -17,11 +17,19 @@
 
 local e = _G.PolarisNav
 
+local is_hidden = {
+    'Begin_Link',
+    'Check_Link',
+    'Refresh',
+    'Login',
+    'Welcome'
+}
+
 local function checkandrun(props)
-    if props.mode ~= "Begin_Link" and props.mode ~= "Check_Link" and props.mode ~= "Refresh" and props.mode ~= "Login" and props.mode ~= "Welcome" and props.mode ~= "Settings" then
-       e.go.mode_set("Settings")
-    else
-        if props.mode == "Settings" then
+    if not is_hidden[props.mode] then
+        if props.mode ~= 'Settings' then
+            e.go.mode_set('Settings')
+        else
             e.go.mode_set(props.previous_mode)
         end
     end
@@ -30,17 +38,16 @@ end
 local component = e.Roact.Component:extend(script.Name)
 
 function component:render()
-    local props = self.props
-    local title = string.gsub(props.mode, "_", " ")
+    local title = string.gsub(self.props.mode, '_', ' ')
     local elements = {}
-    if props.mode ~= "Begin_Link" and props.mode ~= "Check_Link" and props.mode ~= "Refresh" and props.mode ~= "Login" and props.mode ~= "Welcome" then
+    if not is_hidden[self.props.mode] then
         elements = {
             e.ImageButton {
             BackgroundTransparency = 1;
             AnchorPoint = Vector2.new(0.5,0);
             Size = UDim2.new(0,24,0,24);
             Position = UDim2.new(1, -(26 / 2), 0, 0);
-            Image = "rbxassetid://3926307971";
+            Image = 'rbxassetid://3926307971';
             ImageRectSize = Vector2.new(36, 36);
             ImageRectOffset = Vector2.new(324, 124);
             ImageColor3 = self.props.colors.BrightText;

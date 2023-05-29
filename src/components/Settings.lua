@@ -24,29 +24,29 @@ function component:render()
         Name = script.Name
     }, {
         e.Line {
-			e.HeaderBackground({}, {
-				e.HeaderLabel {
-					Text = 'Account';
-				};
-				e.TButton {
-					Size = UDim2.new(0, 70, 1, -2);
-					Position = UDim2.new(1, -70 -20 -70, 0, 1);
-					TextSize = 10;
-					Text = 'Unlink';
-					[e.Roact.Event.Activated] = e.op.unlink;
-				};
-				e.TButton {
-					Size = UDim2.new(0, 70, 1, -2);
-					Position = UDim2.new(1, -70, 0, 1);
-					TextSize = 10;
-					Text = 'Logout';
-					[e.Roact.Event.Activated] = e.op.logout;
-				};
-			});
-			e.UIListLayout {
-				FillDirection = Enum.FillDirection.Vertical;
-			};
-		};
+            e.HeaderBackground({}, {
+                e.HeaderLabel {
+                    Text = 'Account';
+                };
+                e.TButton {
+                    Size = UDim2.new(0, 70, 1, -2);
+                    Position = UDim2.new(1, -70 -20 -70, 0, 1);
+                    TextSize = 10;
+                    Text = 'Unlink';
+                    [e.Roact.Event.Activated] = e.op.unlink;
+                };
+                e.TButton {
+                    Size = UDim2.new(0, 70, 1, -2);
+                    Position = UDim2.new(1, -70, 0, 1);
+                    TextSize = 10;
+                    Text = 'Logout';
+                    [e.Roact.Event.Activated] = e.op.logout;
+                };
+            });
+            e.UIListLayout {
+                FillDirection = Enum.FillDirection.Vertical;
+            };
+        };
 
         e.Line {};
 
@@ -61,19 +61,19 @@ function component:render()
         };
 
         e.UIPadding {
-			PaddingTop = UDim.new(0, 20);
-			PaddingBottom = UDim.new(0, 20);
-		};
+            PaddingTop = UDim.new(0, 20);
+            PaddingBottom = UDim.new(0, 20);
+        };
 
-		e.UIListLayout {
-			FillDirection = Enum.FillDirection.Vertical;
-		};
+        e.UIListLayout {
+            FillDirection = Enum.FillDirection.Vertical;
+        };
     })
 end
 
 return e.connect(function(state)
     return {
         colors = state.colors;
-		previous_mode = state.previous_mode
+        previous_mode = state.previous_mode
     }
 end)(component)
