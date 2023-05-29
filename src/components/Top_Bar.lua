@@ -18,15 +18,15 @@
 local e = _G.PolarisNav
 
 local is_hidden = {
-    'Begin_Link',
-    'Check_Link',
-    'Refresh',
-    'Login',
-    'Welcome'
+    ['Begin_Link'] = true,
+    ['Check_Link'] = true,
+    ['Refresh'] = true,
+    ['Login'] = true,
+    ['Welcome'] = true
 }
 
 local function checkandrun(props)
-    if not is_hidden[props.mode] then
+    if not is_hidden[props.mode] == nil then
         if props.mode ~= 'Settings' then
             e.go.mode_set('Settings')
         else
@@ -35,12 +35,12 @@ local function checkandrun(props)
     end
 end
 
-local component = e.Roact.Component:extend(script.Name)
-
-function component:render()
-    local title = string.gsub(self.props.mode, '_', ' ')
+local function component(props)
+    print(props)
+    local title = string.gsub(props.mode, '_', ' ')
     local elements = {}
-    if not is_hidden[self.props.mode] then
+    print(is_hidden[props.mode])
+    if not is_hidden[props.mode] then
         elements = {
             e.ImageButton {
             BackgroundTransparency = 1;
@@ -50,26 +50,26 @@ function component:render()
             Image = 'rbxassetid://3926307971';
             ImageRectSize = Vector2.new(36, 36);
             ImageRectOffset = Vector2.new(324, 124);
-            ImageColor3 = self.props.colors.BrightText;
-            [e.Roact.Event.Activated] = e.bind(checkandrun, self.props);
+            ImageColor3 = props.colors.BrightText;
+            [e.Roact.Event.Activated] = e.bind(checkandrun, props);
             };
             e.TLabel({
-		    	Text = title;
-		    	TextSize = 19;
-		    	TextColor3 = self.props.colors.BrightText;
-		    	Size = UDim2.new(0, 0, 1, 0);
-		    	Position = UDim2.new(0.5, 0, 0.5, 0);
-		    	AnchorPoint = Vector2.new(0.5, 0.5);
-		    	BackgroundTransparency = 1;
-		    	AutomaticSize = Enum.AutomaticSize.X;
-		    });
+                Text = title;
+                TextSize = 19;
+                TextColor3 = props.colors.BrightText;
+                Size = UDim2.new(0, 0, 1, 0);
+                Position = UDim2.new(0.5, 0, 0.5, 0);
+                AnchorPoint = Vector2.new(0.5, 0.5);
+                BackgroundTransparency = 1;
+                AutomaticSize = Enum.AutomaticSize.X;
+            });
         }
     else
         elements = {
             e.TLabel({
                 Text = title;
                 TextSize = 19;
-                TextColor3 = self.props.colors.BrightText;
+                TextColor3 = props.colors.BrightText;
                 Size = UDim2.new(0, 0, 1, 0);
                 Position = UDim2.new(0.5, 0, 0.5, 0);
                 AnchorPoint = Vector2.new(0.5, 0.5);
@@ -81,16 +81,16 @@ function component:render()
     return e.Pane({
         Size = UDim2.new(1, 0, 0, 27);
         Position = UDim2.new(0,0,0,-27);
-        BackgroundColor3 = self.props.colors.MainBackground;
+        BackgroundColor3 = props.colors.MainBackground;
         BorderSizePixel = 1;
         BorderMode = Enum.BorderMode.Inset;
     }, elements);
 end
 
 return e.connect(function(state)
-	return {
-		colors = state.colors,
+    return {
+        colors = state.colors,
         mode = state.mode,
         previous_mode = state.previous_mode
-	}
+    }
 end)(component)
