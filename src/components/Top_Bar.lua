@@ -26,12 +26,10 @@ local is_hidden = {
 }
 
 local function checkandrun(props)
-    if not is_hidden[props.mode] == nil then
-        if props.mode ~= 'Settings' then
-            e.go.mode_set('Settings')
-        else
-            e.go.mode_set(props.previous_mode)
-        end
+    if props.mode ~= 'Settings' then
+        e.go.mode_set('Settings')
+    else
+        e.go.mode_set(props.previous_mode)
     end
 end
 
