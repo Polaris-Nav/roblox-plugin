@@ -21,7 +21,7 @@ local component = e.Roact.PureComponent:extend(script.Name)
 
 function component:render()
 	return e.Context({
-		Name = 'Login'
+		Name = script.Name
 	}, {
 		e.Pane({
 			Size = UDim2.new(1, 0, 0, 0);

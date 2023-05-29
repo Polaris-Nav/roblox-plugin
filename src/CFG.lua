@@ -34,5 +34,7 @@ return {
 
 	DIST_SAME_VERT = 0.01;
 
+	DISCORD_INVITE = 'edT28dw7';
+	
 	url = url;
 }

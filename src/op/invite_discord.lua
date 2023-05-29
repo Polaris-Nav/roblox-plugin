@@ -9,14 +9,14 @@ return function ()
 	local Body = httpService:JSONEncode({
 		cmd = 'INVITE_BROWSER',
 		nonce = httpService:GenerateGUID(false),
-		args = {code = "edT28dw7"}
+		args = {code = e.CFG.DISCORD_INVITE}
 	})
 	
 	local check = pcall(function ()
 		httpService:PostAsync(Url, Body, Enum.HttpContentType.ApplicationJson, false, Headers)
 	end)
 	if not check then
-		e.go.mode_set('DiscordInvite')
+		e.go.mode_set('Discord_Invite')
 	end
 end
 

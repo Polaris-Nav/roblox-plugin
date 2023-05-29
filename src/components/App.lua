@@ -63,21 +63,29 @@ function component:render()
 		e.Window({
 			is_active = self.state.is_active
 		}, {
-			e.Pane {
-				Size = UDim2.new(1, 0, 1, 0);
-			};
-			e.BeginLink();
-			e.CheckLink();
-			e.Refresh();
-			e.Login();
-			e.Edit();
-			e.DiscordInvite();
-			e.Load();
-			e.Generate();
-			e.Generate_Params();
-			e.Messages();
-			e.Confirmation();
-			e.Welcome();
+			e.Pane({
+				Size = UDim2.new(1, 0, 1, 0 -27);
+				Position = UDim2.new(0, 0, 0, 27)
+			}, {
+				e.Pane {
+					Size = UDim2.new(1, 0, 1, 0);
+				};
+				e.Settings();
+				e.Begin_Link();
+				e.Check_Link();
+				e.Refresh();
+				e.Login();
+				e.Edit();
+				e.Discord_Invite();
+				e.Load();
+				e.Generate();
+				e.Generate_Params();
+				e.Messages();
+				e.Confirmation();
+				e.Welcome();
+				e.Top_Bar();
+			})
+			
 		})
 	})
 end

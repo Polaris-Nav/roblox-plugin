@@ -1,26 +1,32 @@
 local e = _G.PolarisNav
 
+local save = e.op.persistent_save
+local load = e.op.persistent_load
+
 local function set_auth(uid, tok, ses, code, att)
 	local auth = {
-		UserId = uid;
+		UserId = tonumber(uid);
 		session = ses;
 		token = tok;
 		Code = code;
 		attempts = att;
 	}
 	local p = e.plugin
-	p:SetSetting('user-id', uid)
-	p:SetSetting('refresh-token', tok)
-	p:SetSetting('session', ses)
+	save('auth', {
+		['user-id'] = uid;
+		['refresh-token'] = tok;
+		['session'] = ses;
+	})
 	return auth
 end
 
 return function(action, old, new, nxt)
 	if action.type == '@@INIT' then
+		local savedAuth = load('auth')
 		new.auth = set_auth(
-			e.plugin:GetSetting 'user-id' or e.plugin:GetSetting 'UserId',
-			e.plugin:GetSetting 'refresh-token',
-			e.plugin:GetSetting 'session',
+			savedAuth['user-id'] or nil,
+			savedAuth['refresh-token'] or nil,
+			savedAuth['session'] or nil,
 			nil,
 			0
 		)

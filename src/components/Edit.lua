@@ -183,31 +183,6 @@ function component:render()
 		e.Line {
 			e.HeaderBackground({}, {
 				e.HeaderLabel {
-					Text = 'Account';
-				};
-				e.TButton {
-					Size = UDim2.new(0, 70, 1, -2);
-					Position = UDim2.new(1, -70 -20 -70, 0, 1);
-					TextSize = 10;
-					Text = 'Unlink';
-					[e.Roact.Event.Activated] = e.op.unlink;
-				};
-				e.TButton {
-					Size = UDim2.new(0, 70, 1, -2);
-					Position = UDim2.new(1, -70, 0, 1);
-					TextSize = 10;
-					Text = 'Logout';
-					[e.Roact.Event.Activated] = e.op.logout;
-				};
-			});
-			e.UIListLayout {
-				FillDirection = Enum.FillDirection.Vertical;
-			};
-		};
-
-		e.Line {
-			e.HeaderBackground({}, {
-				e.HeaderLabel {
 					Text = 'Meshes';
 				};
 				e.TButton {
