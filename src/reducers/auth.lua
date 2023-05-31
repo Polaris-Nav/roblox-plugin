@@ -3,13 +3,14 @@ local e = _G.PolarisNav
 local save = e.op.persistent_save
 local load = e.op.persistent_load
 
-local function set_auth(uid, tok, ses, code, att)
+local function set_auth(uid, tok, ses, code, att, guest)
 	local auth = {
 		UserId = tonumber(uid);
 		session = ses;
 		token = tok;
 		Code = code;
 		attempts = att;
+		is_guest = guest;
 	}
 	local p = e.plugin
 	save('auth', {
@@ -28,7 +29,8 @@ return function(action, old, new, nxt)
 			savedAuth['refresh-token'] or nil,
 			savedAuth['session'] or nil,
 			nil,
-			0
+			0,
+			false
 		)
 		return
 	end
@@ -42,7 +44,8 @@ return function(action, old, new, nxt)
 				action.token,
 				action.session,
 				nil,
-				0
+				0,
+				false
 			)
 		elseif name == 'clear' then
 			new.auth = set_auth(
@@ -50,9 +53,9 @@ return function(action, old, new, nxt)
 				nil,
 				nil,
 				nil,
-				0
+				0,
+				true
 			)
-			e.info 'You must relink your account.'
 		else
 			error('reducer does not implement ' .. name)
 		end
@@ -64,7 +67,8 @@ return function(action, old, new, nxt)
 				old.auth.token,
 				action.session,
 				nil,
-				0
+				0,
+				false
 			)
 		elseif name == 'fail' then
 			local attempts = old.auth.attempts + 1
@@ -74,7 +78,8 @@ return function(action, old, new, nxt)
 					nil,
 					nil,
 					nil,
-					0
+					0,
+					true
 				)
 			else
 				new.auth = set_auth(
@@ -82,7 +87,8 @@ return function(action, old, new, nxt)
 					old.auth.token,
 					nil,
 					nil,
-					attempts
+					attempts,
+					true
 				)
 			end
 		elseif name == 'clear' then
@@ -91,7 +97,8 @@ return function(action, old, new, nxt)
 				old.auth.token,
 				nil,
 				nil,
-				0
+				0,
+				true
 			)
 		else
 			error('reducer does not implement ' .. name)

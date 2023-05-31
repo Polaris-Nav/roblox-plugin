@@ -21,7 +21,7 @@ return function ()
 	:Then(e.op.authorized)
 	:Else(function()
 		e.go.auth_login_fail()
-		e.go.mode_set 'BeginLink'
+		e.go.mode_set 'Begin_Link'
 		e.warn 'Login failed'
 	end)
 	:ContinueAsync()

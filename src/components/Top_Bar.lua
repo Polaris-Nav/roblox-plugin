@@ -34,47 +34,32 @@ local function checkandrun(props)
 end
 
 local function component(props)
-	print(props)
 	local title = string.gsub(props.mode, '_', ' ')
-	local elements = {}
-	print(is_hidden[props.mode])
+	local elements = {
+		e.TLabel({
+			Text = title;
+			TextSize = 19;
+			TextColor3 = props.colors.BrightText;
+			Size = UDim2.new(0, 0, 1, 0);
+			Position = UDim2.new(0.5, 0, 0.5, 0);
+			AnchorPoint = Vector2.new(0.5, 0.5);
+			BackgroundTransparency = 1;
+			AutomaticSize = Enum.AutomaticSize.X;
+		});
+	}
 	if not is_hidden[props.mode] then
-		elements = {
-			e.ImageButton {
-				BackgroundTransparency = 1;
-				AnchorPoint = Vector2.new(0.5,0);
-				Size = UDim2.new(0,24,0,24);
-				Position = UDim2.new(1, -(26 / 2), 0, 0);
-				Image = 'rbxassetid://3926307971';
-				ImageRectSize = Vector2.new(36, 36);
-				ImageRectOffset = Vector2.new(324, 124);
-				ImageColor3 = props.colors.BrightText;
-				[e.Roact.Event.Activated] = e.bind(checkandrun, props);
-			};
-			e.TLabel({
-				Text = title;
-				TextSize = 19;
-				TextColor3 = props.colors.BrightText;
-				Size = UDim2.new(0, 0, 1, 0);
-				Position = UDim2.new(0.5, 0, 0.5, 0);
-				AnchorPoint = Vector2.new(0.5, 0.5);
-				BackgroundTransparency = 1;
-				AutomaticSize = Enum.AutomaticSize.X;
-			});
-		}
-	else
-		elements = {
-			e.TLabel({
-				Text = title;
-				TextSize = 19;
-				TextColor3 = props.colors.BrightText;
-				Size = UDim2.new(0, 0, 1, 0);
-				Position = UDim2.new(0.5, 0, 0.5, 0);
-				AnchorPoint = Vector2.new(0.5, 0.5);
-				BackgroundTransparency = 1;
-				AutomaticSize = Enum.AutomaticSize.X;
-			});
-		}
+		table.insert(elements, 1,
+		e.ImageButton {
+			BackgroundTransparency = 1;
+			AnchorPoint = Vector2.new(0.5,0);
+			Size = UDim2.new(0,24,0,24);
+			Position = UDim2.new(1, -(26 / 2), 0, 0);
+			Image = 'rbxassetid://3926307971';
+			ImageRectSize = Vector2.new(36, 36);
+			ImageRectOffset = Vector2.new(324, 124);
+			ImageColor3 = props.colors.BrightText;
+			[e.Roact.Event.Activated] = e.bind(checkandrun, props);
+		})
 	end
 	return e.Pane({
 		Size = UDim2.new(1, 0, 0, 27);
