@@ -44,7 +44,11 @@ local function update(pl)
         if lastPluginVersion == nil then
             updateFunctions.none()
         else
-            updateFunctions[lastPluginVersion]()
+            for version, func in pairs(updateFunctions) do
+                if version > lastPluginVersion and version <= currentVersion then
+                    func()
+                end
+            end
         end
         Plugin:SetSetting('pluginVersion', '#' .. currentVersion)
         print('Successfully updated plugin values to version ' .. currentVersion .. '!')
