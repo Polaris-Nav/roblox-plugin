@@ -44,7 +44,7 @@ local function update(pl)
 		if lastPluginVersion == nil then
 			updateFunctions.none()
 		else
-			for version, func in pairs(updateFunctions) do
+			for version, func in ipairs(updateFunctions) do
 				if version > lastPluginVersion and version <= currentVersion then
 					func()
 				end
