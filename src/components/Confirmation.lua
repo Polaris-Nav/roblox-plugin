@@ -111,8 +111,8 @@ function component:render()
 					e.TButton {
 						Text = 'Okay';
 						Size = UDim2.new(0, 100, 0, 27);
-                        TextColor3 = Color3.new(0, 0, 0);
-                        BackgroundColor3 = Color3.new(1, 0.266667, 0.266667);
+						TextColor3 = Color3.new(0, 0, 0);
+						BackgroundColor3 = Color3.new(1, 0.266667, 0.266667);
 						[e.Roact.Event.Activated] = function()
 							e.go.confirm_hide()
 							if self.props.onConfirm then

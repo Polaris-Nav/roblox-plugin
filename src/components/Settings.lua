@@ -18,82 +18,82 @@
 local e = _G.PolarisNav
 
 local accountSections = {
-    Linked = {
-        e.HeaderBackground({}, {
-            e.HeaderLabel {
-                Text = 'Account';
-            };
-            e.TButton {
-                Size = UDim2.new(0, 70, 1, -2);
-                Position = UDim2.new(1, -70 -20 -70, 0, 1);
-                TextSize = 10;
-                Text = 'Unlink';
-                [e.Roact.Event.Activated] = e.op.unlink;
-            };
-            e.TButton {
-                Size = UDim2.new(0, 70, 1, -2);
-                Position = UDim2.new(1, -70, 0, 1);
-                TextSize = 10;
-                Text = 'Logout';
-                [e.Roact.Event.Activated] = e.op.logout;
-            };
-        });
-        e.UIListLayout {
-            FillDirection = Enum.FillDirection.Vertical;
-        };
-    };
-    Guest = {
-        e.HeaderBackground({}, {
-            e.HeaderLabel {
-                Text = 'Account';
-            };
-            e.TButton {
-                Size = UDim2.new(0, 140, 1, -2);
-                Position = UDim2.new(1, -70 -70, 0, 1);
-                TextSize = 10;
-                Text = 'Link Account';
-                [e.Roact.Event.Activated] = e.bind(e.go.mode_set, "Begin_Link");
-            };
-        });
-        e.UIListLayout {
-            FillDirection = Enum.FillDirection.Vertical;
-        };
-    };
+	Linked = {
+		e.HeaderBackground({}, {
+			e.HeaderLabel {
+				Text = 'Account';
+			};
+			e.TButton {
+				Size = UDim2.new(0, 70, 1, -2);
+				Position = UDim2.new(1, -70 -20 -70, 0, 1);
+				TextSize = 10;
+				Text = 'Unlink';
+				[e.Roact.Event.Activated] = e.op.unlink;
+			};
+			e.TButton {
+				Size = UDim2.new(0, 70, 1, -2);
+				Position = UDim2.new(1, -70, 0, 1);
+				TextSize = 10;
+				Text = 'Logout';
+				[e.Roact.Event.Activated] = e.op.logout;
+			};
+		});
+		e.UIListLayout {
+			FillDirection = Enum.FillDirection.Vertical;
+		};
+	};
+	Guest = {
+		e.HeaderBackground({}, {
+			e.HeaderLabel {
+				Text = 'Account';
+			};
+			e.TButton {
+				Size = UDim2.new(0, 140, 1, -2);
+				Position = UDim2.new(1, -70 -70, 0, 1);
+				TextSize = 10;
+				Text = 'Link Account';
+				[e.Roact.Event.Activated] = e.bind(e.go.mode_set, "Begin_Link");
+			};
+		});
+		e.UIListLayout {
+			FillDirection = Enum.FillDirection.Vertical;
+		};
+	};
 }
 
 local function component(props)
-    local accSect = props.guest_mode and accountSections.Guest or accountSections.Linked
+	local accSect = props.is_guest and accountSections.Guest or accountSections.Linked
 
-    return e.Context({
-        Name = script.Name
-    }, {
-        e.Line(accSect);
+	return e.Context({
+		Name = script.Name
+	}, {
+		e.Line(accSect);
 
-        e.Line {
-            e.TButton {
-                Size = UDim2.new(0, 70, 0, 24);
-                Position = UDim2.new(1, 0 -70, 0, 24);
-                TextSize = 10;
-                Text = 'Back';
-                [e.Roact.Event.Activated] = e.bind(e.go.mode_set, props.previous_mode);
-            };
-        };
+		e.Line {
+			e.TButton {
+				Size = UDim2.new(0, 70, 0, 24);
+				Position = UDim2.new(1, 0 -70, 0, 24);
+				TextSize = 10;
+				Text = 'Back';
+				[e.Roact.Event.Activated] = e.bind(e.go.mode_set, props.previous_mode);
+			};
+		};
 
-        e.UIPadding {
-            PaddingTop = UDim.new(0, 20);
-            PaddingBottom = UDim.new(0, 20);
-        };
+		e.UIPadding {
+			PaddingTop = UDim.new(0, 20);
+			PaddingBottom = UDim.new(0, 20);
+		};
 
-        e.UIListLayout {
-            FillDirection = Enum.FillDirection.Vertical;
-        };
-    })
+		e.UIListLayout {
+			FillDirection = Enum.FillDirection.Vertical;
+		};
+	})
 end
 
 return e.connect(function(state)
-    return {
-        colors = state.colors;
-        previous_mode = state.previous_mode;
-        guest_mode = state.auth.guestMode
-    }
+	return {
+		colors = state.colors;
+		previous_mode = state.previous_mode;
+		is_guest = state.auth.is_guest
+	}
 end)(component)

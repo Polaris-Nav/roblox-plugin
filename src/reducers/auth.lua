@@ -10,7 +10,7 @@ local function set_auth(uid, tok, ses, code, att, guest)
 		token = tok;
 		Code = code;
 		attempts = att;
-        guestMode = guest;
+		is_guest = guest;
 	}
 	local p = e.plugin
 	save('auth', {
@@ -30,7 +30,7 @@ return function(action, old, new, nxt)
 			savedAuth['session'] or nil,
 			nil,
 			0,
-            false
+			false
 		)
 		return
 	end
@@ -45,7 +45,7 @@ return function(action, old, new, nxt)
 				action.session,
 				nil,
 				0,
-                false
+				false
 			)
 		elseif name == 'clear' then
 			new.auth = set_auth(
@@ -54,7 +54,7 @@ return function(action, old, new, nxt)
 				nil,
 				nil,
 				0,
-                true
+				true
 			)
 		else
 			error('reducer does not implement ' .. name)
@@ -68,7 +68,7 @@ return function(action, old, new, nxt)
 				action.session,
 				nil,
 				0,
-                false
+				false
 			)
 		elseif name == 'fail' then
 			local attempts = old.auth.attempts + 1
@@ -79,7 +79,7 @@ return function(action, old, new, nxt)
 					nil,
 					nil,
 					0,
-                    true
+					true
 				)
 			else
 				new.auth = set_auth(
@@ -88,7 +88,7 @@ return function(action, old, new, nxt)
 					nil,
 					nil,
 					attempts,
-                    true
+					true
 				)
 			end
 		elseif name == 'clear' then
@@ -98,7 +98,7 @@ return function(action, old, new, nxt)
 				nil,
 				nil,
 				0,
-                true
+				true
 			)
 		else
 			error('reducer does not implement ' .. name)
